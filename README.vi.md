@@ -1,16 +1,17 @@
-# PMPP, làm xuyên suốt
+# PMPP, học và thực hành trọn bộ
 
 [English](README.md) · **Tiếng Việt**
 
-Bản học tương tác của *Programming Massively Parallel Processors* (ấn bản 5), viết cho một
-người đọc: bài học có mô phỏng và hoạt cảnh thuyết minh trong một web app chạy cục bộ, cùng
-các lab chạy trên GPU của bạn qua CUDA, HIP hoặc Metal.
+Tài liệu học tương tác cho sách *Programming Massively Parallel Processors* (ấn bản thứ 5),
+được thiết kế cho việc tự học cá nhân: các bài học có mô phỏng và animation thuyết minh
+trên một web app chạy local, đi kèm các bài lab chạy trên GPU của bạn qua CUDA, HIP hoặc Metal.
 
-Tình trạng (2026-11-21): mọi chương đã dựng xong. Gồm chương 1 đến 24, phụ lục A và C (bỏ B:
-kiến thức cơ bản về deep learning), và ba module sách không có: X1 kernel sampling, X2 kernel
-lượng tử hoá, X3 đọc backend thật. Có 79 lab, mang các milestone M0 đến M10 của dự án (xem
-`PLAN.md`, mục 5). Chương 5 là bản thử và là mẫu. `PROGRESS.md` ghi trạng thái hiện tại và
-việc còn mở; kế hoạch nằm trong `PLAN.md`.
+Tình trạng (2026-11-21): toàn bộ các chương đã hoàn thiện. Gồm chương 1 đến 24, phụ lục A
+và C (bỏ qua B: kiến thức cơ bản về deep learning), cùng ba module bổ sung ngoài sách: X1
+sampling kernels, X2 quantised kernels, X3 đọc backend thực tế. Tổng cộng có 79 bài lab,
+tương ứng với các cột mốc (milestone) từ M0 đến M10 của dự án (xem `PLAN.md`, mục 5).
+Chương 5 được làm thí điểm trước và dùng làm mẫu cho các chương khác. `PROGRESS.md` ghi lại
+trạng thái hiện tại và các đầu việc còn dang dở; kế hoạch tổng thể nằm trong `PLAN.md`.
 
 ## Chạy app
 
@@ -18,46 +19,47 @@ việc còn mở; kế hoạch nằm trong `PLAN.md`.
 ./start.sh          # sau đó mở http://localhost:5173
 ```
 
-Cần Node.js 20 trở lên. Tiến độ được lưu vào `progress/progress.json`; commit hoặc đồng bộ
-file này để mang tiến độ sang máy khác.
+Cần Node.js 20 trở lên. Tiến độ học được lưu vào `progress/progress.json`; bạn có thể
+commit hoặc đồng bộ file này để chuyển tiến độ giữa các máy.
 
 ## Chạy lab
 
 ```sh
-./verify.sh                         # build + test + benchmark mọi thứ máy này hỗ trợ,
-                                    # ghi ra reports/verify-<time>-<os>-<backends>.md
-./verify.sh --quick                 # như trên, bỏ benchmark
-./verify.sh --backend hip           # chỉ một backend (lặp lại được), ví dụ bỏ qua emulator chậm
-python3 labs/pmpp.py doctor         # backend nào được tìm thấy, và thiết bị báo cáo những gì
-python3 labs/pmpp.py run 5.2        # test bài làm lab 5.2 trên mọi backend
+./verify.sh                         # build + test + benchmark toàn bộ những gì máy này hỗ trợ,
+                                    # lưu kết quả vào reports/verify-<time>-<os>-<backends>.md
+./verify.sh --quick                 # tương tự như trên, nhưng bỏ qua benchmark
+./verify.sh --backend hip           # chỉ chạy một backend (có thể truyền nhiều lần), ví dụ để bỏ qua emulator chậm
+python3 labs/pmpp.py doctor         # kiểm tra các backend tìm thấy và thông tin thiết bị
+python3 labs/pmpp.py run 5.2        # chạy test cho bài lab 5.2 trên mọi backend
 python3 labs/pmpp.py run 5.2 --bench
 python3 labs/pmpp.py run 5.2 --backend emu
 python3 labs/pmpp.py run 5.2 --solution
 ```
 
-Cần CMake 3.21 trở lên, trình biên dịch C++17 và Python 3. Backend được dò tự động; backend
-thiếu thì bỏ qua:
+Cần CMake 3.21 trở lên, trình biên dịch C++17 và Python 3. Hệ thống sẽ tự động nhận diện
+các backend; backend nào thiếu sẽ được bỏ qua:
 
-| Backend | Cần                                     | Trạng thái lời giải tham chiếu                                                                                                                                                                                     |
-|---------|-----------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `metal` | macOS có Xcode command line tools       | verified on Metal (máy Mac của tác giả), trừ lab 11.5, 12.5 và 18.1 phần B, chỉ chạy được trên họ CUDA                                                                                                             |
-| `emu`   | không cần gì thêm                       | emulator-checked: emulator CPU cho tập con của CUDA, chỉ kiểm tra logic. Giới hạn thời gian test là 2400 s (900 s trên thiết bị; `PMPP_TEST_TIMEOUT` để ghi đè), vì bộ test của lab X3.2 chạy lần lượt từng thread |
-| `race`  | không cần gì thêm                       | cùng emulator đó nhưng chạy thread đồng thời dưới ThreadSanitizer, dành cho lab tự chọn tham gia                                                                                                                   |
-| `cuda`  | NVIDIA CUDA toolkit                     | front-end-checked; **chưa từng chạy trên thiết bị CUDA**                                                                                                                                                           |
-| `hip`   | AMD ROCm (`ROCM_PATH` hoặc `/opt/rocm`) | **unverified**, chưa từng biên dịch                                                                                                                                                                                |
+| Backend | Yêu cầu | Trạng thái lời giải tham chiếu |
+|---|---|---|
+| `metal` | macOS có Xcode command line tools | đã kiểm chứng trên Metal (máy Mac của tác giả), ngoại trừ lab 11.5, 12.5 và 18.1 phần B (chỉ hỗ trợ nhóm CUDA) |
+| `emu` | không cần gì thêm | đã kiểm tra qua emulator: CPU emulator cho tập con của CUDA, chỉ kiểm tra logic. Giới hạn thời gian test là 2400 giây (900 giây trên thiết bị thật; có thể ghi đè bằng `PMPP_TEST_TIMEOUT`), vì bộ test của lab X3.2 chạy lần lượt từng thread |
+| `race` | không cần gì thêm | cùng emulator trên nhưng chạy các thread đồng thời dưới ThreadSanitizer, áp dụng cho các lab có bật chế độ này |
+| `cuda` | NVIDIA CUDA toolkit | mới kiểm tra ở mức front-end; **chưa từng chạy thử trên thiết bị CUDA** |
+| `hip` | AMD ROCm (`ROCM_PATH` hoặc `/opt/rocm`) | **chưa kiểm chứng**, chưa từng biên dịch |
 
-Nếu có máy CUDA hoặc ROCm: chạy `./verify.sh` ở đó và giữ báo cáo nó ghi ra. Báo cáo ghi lỗi
-build và lỗi test đủ chi tiết để sửa.
+Nếu bạn có máy dùng CUDA hoặc ROCm: hãy chạy `./verify.sh` trên máy đó và lưu lại file
+báo cáo được tạo ra. Báo cáo ghi lại lỗi build và lỗi test đủ chi tiết để có thể dựa vào đó
+sửa lỗi.
 
-## Bố cục
+## Cấu trúc thư mục
 
 ```
-app/        web app; app/src/chapters/chNN/ chứa bài học của một chương
+app/        web app; app/src/chapters/chNN/ chứa bài học của từng chương
 content/    kịch bản thuyết minh, audio và manifest
-labs/       hệ thống build, runtime, emulator CPU, và labs/chNN/labM_name/{starter,work,solution}
+labs/       hệ thống build, runtime, CPU emulator, và labs/chNN/labM_name/{starter,work,solution}
 notes/      ghi chú từng chương của sách, kèm số trang
-progress/   file tiến độ của bạn
-reports/    báo cáo verify
+progress/   file lưu tiến độ học của bạn
+reports/    các báo cáo kiểm thử (verify)
 ```
 
-PDF của sách không nằm trong repo và không cần có để chạy bất kỳ phần nào.
+Repo không kèm file PDF của sách và bạn cũng không cần có file này để chạy bất kỳ phần nào.
