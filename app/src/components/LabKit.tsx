@@ -120,6 +120,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import { Predict } from './Ask';
 import { Code, useLabFile } from './Code';
 import { Aside, Bench, type Tier } from './notes';
+import { getMessages, useI18n, type Locale } from '../lib/i18n';
 import {
   benchRows,
   fmt,
@@ -175,11 +176,12 @@ export function defineLabs<const T extends readonly LabSpec[]>(chapter: string, 
 // ---------------------------------------------------------------- shared vocabulary
 export const BACKENDS = ['metal', 'emu', 'cuda', 'hip'] as const;
 export type Backend = (typeof BACKENDS)[number];
-const NAME: Record<Backend, string> = { metal: 'Metal', emu: 'emulator', cuda: 'CUDA', hip: 'HIP' };
 const KERNEL: Record<Backend, LabSource> = { metal: 'kernel.metal', emu: 'kernel.cu', cuda: 'kernel.cu', hip: 'kernel.cu' };
 /** What to say where a lab has no source for a backend. */
-const noSource = (l: Lab, b: Backend): string | null =>
-  l.sources.includes(KERNEL[b]) ? null : b === 'metal' ? 'no Metal files in this lab' : 'no kernel.cu in this lab';
+const noSource = (l: Lab, b: Backend, locale: Locale = 'en'): string | null => {
+  const m = getMessages(locale).labKit;
+  return l.sources.includes(KERNEL[b]) ? null : b === 'metal' ? m.noMetalFiles : m.noKernelCu;
+};
 
 // ---------------------------------------------------------------- the page's shared state
 interface Kit {
@@ -230,18 +232,13 @@ export function useLabs(): Kit {
 
 // ---------------------------------------------------------------- status of the reference solutions
 /** Status of a reference solution on one backend, in the project's fixed vocabulary. */
-export function solutionStatus(reports: Reports, b: Backend, l: Lab): { text: string; tone: 'ok' | 'fail' | 'none' } {
+export function solutionStatus(reports: Reports, b: Backend, l: Lab, locale: Locale = 'en'): { text: string; tone: 'ok' | 'fail' | 'none' } {
+  const m = getMessages(locale).labKit;
   const s = labStatus(reports[b], l.id, 'solution');
-  if (s === 'pass') return { text: b === 'emu' ? 'emulator-checked' : `verified on ${NAME[b]}`, tone: 'ok' };
-  if (s === 'fail') return { text: 'unverified: failed on this machine', tone: 'fail' };
-  return { text: noSource(l, b) ?? NO_RUN, tone: 'none' };
+  if (s === 'pass') return { text: b === 'emu' ? m.emulatorChecked : m.verifiedOn(m.backends[b]), tone: 'ok' };
+  if (s === 'fail') return { text: m.unverifiedWithReason(m.failedOnMachine), tone: 'fail' };
+  return { text: noSource(l, b, locale) ?? m.noRunOnMachine, tone: 'none' };
 }
-
-// One wording per status, everywhere on a labs page (status table, solution tabs, race line).
-const FAILED = 'failed on this machine';
-const NO_RUN = 'no run on this machine';
-const WHERE: Record<Backend | 'race', string> = { metal: 'Metal', emu: 'the emulator', cuda: 'CUDA', hip: 'HIP', race: 'the race emulator' };
-const and = (xs: string[]) => (xs.length < 3 ? xs.join(' and ') : xs.slice(0, -1).join(', ') + ' and ' + xs.at(-1));
 
 /**
  * The status a reference-solution tab shows, in the same words as the status table. The
@@ -254,27 +251,29 @@ const and = (xs: string[]) => (xs.length < 3 ? xs.join(' and ') : xs.slice(0, -1
  * the file is unchanged since, and only until CUDA itself has passed). It says a run failed
  * whenever one did.
  */
-export function solutionTabStatus(reports: Reports, l: Lab | string, file: LabSource): string {
+export function solutionTabStatus(reports: Reports, l: Lab | string, file: LabSource, locale: Locale = 'en'): string {
+  const msg = getMessages(locale);
+  const m = msg.labKit;
   const id = typeof l === 'string' ? l : l.id;
   const st = (b: Backend) => labStatus(reports[b], id, 'solution');
   if (file !== 'kernel.cu') {
     const s = st('metal');
-    return s === 'pass' ? 'verified on Metal' : `unverified: ${s === 'fail' ? FAILED : NO_RUN}`;
+    return s === 'pass' ? m.verifiedOn(m.backends.metal) : m.unverifiedWithReason(s === 'fail' ? m.failedOnMachine : m.noRunOnMachine);
   }
   // In the order the status reads: CUDA, HIP, then the emulator.
   const fam: Backend[] = ['cuda', 'hip', 'emu'];
-  const passed = fam.filter((b) => st(b) === 'pass').map((b) => (b === 'emu' ? 'emulator-checked' : `verified on ${NAME[b]}`));
-  const failed = fam.filter((b) => st(b) === 'fail').map((b) => WHERE[b]);
-  const none = (['cuda', 'hip'] as Backend[]).filter((b) => st(b) === 'none').map((b) => NAME[b]);
+  const passed = fam.filter((b) => st(b) === 'pass').map((b) => (b === 'emu' ? m.emulatorChecked : m.verifiedOn(m.backends[b])));
+  const failed = fam.filter((b) => st(b) === 'fail').map((b) => m.where[b]);
+  const none = (['cuda', 'hip'] as Backend[]).filter((b) => st(b) === 'none').map((b) => m.backends[b]);
   // The CUDA front-end check (clang parse against stubs) adds to the record until CUDA itself has passed.
   const fe = st('cuda') === 'pass' ? 'none' : frontendStatus(reports, `labs/${id}/solution/kernel.cu`);
-  if (fe === 'ok') passed.push('front-end-checked');
-  if (!passed.length && !failed.length && fe === 'none') return `unverified: ${NO_RUN}`;
+  if (fe === 'ok') passed.push(m.frontEndChecked);
+  if (!passed.length && !failed.length && fe === 'none') return m.unverifiedWithReason(m.noRunOnMachine);
   return [
     passed.join(', '),
-    failed.length ? `unverified on ${and(failed)}: ${FAILED}` : '',
-    fe === 'fail' ? `failed the CUDA front-end check on this machine` : '',
-    none.length ? `unverified on ${none.join(' and ')}` : '',
+    failed.length ? m.unverifiedOnWithReason(msg.common.andList(failed), m.failedOnMachine) : '',
+    fe === 'fail' ? m.frontEndFailed : '',
+    none.length ? m.unverifiedOn(msg.common.andList(none)) : '',
   ]
     .filter(Boolean)
     .join('; ');
@@ -285,16 +284,20 @@ export function raceSolutionStatus(
   reports: Reports,
   l: Lab,
   raceLabs: readonly string[] | null,
+  locale: Locale = 'en',
 ): { text: string; tone: 'ok' | 'fail' | 'none' } {
+  const m = getMessages(locale).labKit;
   const s = labStatus(reports.race, l.id, 'solution');
-  if (s === 'pass') return { text: 'emulator-checked', tone: 'ok' };
-  if (s === 'fail') return { text: `unverified: ${FAILED}`, tone: 'fail' };
-  if (raceLabs && !raceLabs.includes(l.id)) return { text: 'not built for race', tone: 'none' };
-  return { text: noSource(l, 'emu') ?? NO_RUN, tone: 'none' };
+  if (s === 'pass') return { text: m.emulatorChecked, tone: 'ok' };
+  if (s === 'fail') return { text: m.unverifiedWithReason(m.failedOnMachine), tone: 'fail' };
+  if (raceLabs && !raceLabs.includes(l.id)) return { text: m.notBuiltForRace, tone: 'none' };
+  return { text: noSource(l, 'emu', locale) ?? m.noRunOnMachine, tone: 'none' };
 }
 
 /** Every lab of the page against every backend, with the runs the statuses come from. */
 export function SolutionStatusTable() {
+  const { locale, t } = useI18n();
+  const m = t.labKit;
   const { labs, reports, loading, raceLabs } = useLabs();
   const runs = BACKENDS.filter((b) => reports[b]);
   // The race column appears when a lab of this page is built for it or has a race run.
@@ -305,25 +308,25 @@ export function SolutionStatusTable() {
       <table className="data" data-table="solution-status">
         <thead>
           <tr>
-            <th>Reference solution</th>
+            <th>{m.colRefSolution}</th>
             {BACKENDS.map((b) => (
-              <th key={b}>{b === 'emu' ? 'emu' : NAME[b]}</th>
+              <th key={b}>{b === 'emu' ? 'emu' : m.backends[b]}</th>
             ))}
-            {race ? <th title="The emulator run with real threads under ThreadSanitizer">race</th> : null}
+            {race ? <th title={m.raceHeaderTitle}>race</th> : null}
           </tr>
         </thead>
         <tbody>
           {labs.map((l) => (
             <tr key={l.id}>
               <td>
-                Lab {l.num}, {l.name}
+                {m.labNumName(l.num, l.name)}
               </td>
               {BACKENDS.map((b) => {
-                const s = solutionStatus(reports, b, l);
+                const s = solutionStatus(reports, b, l, locale);
                 return (
                   <td key={b} data-lab={l.num} data-backend={b} data-status={loading ? 'loading' : s.text}>
                     {loading ? (
-                      <span className="muted">reading reports</span>
+                      <span className="muted">{t.common.readingReportsShort}</span>
                     ) : s.tone === 'none' ? (
                       <span className="muted">{s.text}</span>
                     ) : (
@@ -334,12 +337,12 @@ export function SolutionStatusTable() {
               })}
               {race
                 ? (() => {
-                    const s = raceSolutionStatus(reports, l, raceLabs);
+                    const s = raceSolutionStatus(reports, l, raceLabs, locale);
                     // data-race-cell, not data-lab (the four backend columns keep their selector) nor data-race-lab (chapters' race lines use it).
                     return (
                       <td key="race" data-race-cell={l.num} data-status={loading ? 'loading' : s.text}>
                         {loading ? (
-                          <span className="muted">reading reports</span>
+                          <span className="muted">{t.common.readingReportsShort}</span>
                         ) : s.tone === 'none' ? (
                           <span className="muted">{s.text}</span>
                         ) : (
@@ -355,13 +358,13 @@ export function SolutionStatusTable() {
       </table>
       <p className="status-line" style={{ margin: '-0.8rem 0 1.4rem' }}>
         {loading
-          ? 'Reading reports/runs.'
+          ? t.common.readingReports
           : runs.length
-            ? 'Runs on this machine: ' +
-              runs.map((b) => `${b} (${String(reports[b].device.name ?? 'unnamed device')}), ${reports[b].generated.replace('T', ' ')}`).join('; ') +
-              (raceRun ? `; race, ${reports.race.generated.replace('T', ' ')}` : '') +
-              '.'
-            : 'No runs on this machine yet. Run ./verify.sh in the repository root, then reload this page.'}
+            ? m.runsOnThisMachine(
+                runs.map((b) => `${b} (${String(reports[b].device.name ?? m.unnamedDevice)}), ${reports[b].generated.replace('T', ' ')}`).join('; ') +
+                  (raceRun ? `; race, ${reports.race.generated.replace('T', ' ')}` : ''),
+              )
+            : m.noRunsYet}
       </p>
     </div>
   );
@@ -396,8 +399,10 @@ export function preferredBench(reports: Reports, l: Lab): BenchSet[] {
   return benchSets(reports, l).filter((s) => (seen.has(s.backend) ? false : (seen.add(s.backend), true)));
 }
 /** Whose kernel a set of rows measured, as the reveal words it. */
-export const whose = (s: BenchSet) =>
-  s.variant === 'work' ? 'your kernel' : 'the reference solution (no passing benchmark of your own kernel yet)';
+export const whose = (s: BenchSet, locale: Locale = 'en') => {
+  const m = getMessages(locale).labKit;
+  return s.variant === 'work' ? m.yourKernel : m.refSolutionNoPassing;
+};
 
 /**
  * The first row called `name` whose fields equal `where`: numbers match numeric fields, strings
@@ -435,14 +440,13 @@ export function measure(
 
 // ---------------------------------------------------------------- prediction against measurement
 /** One plain sentence comparing a committed prediction with a measurement. */
-export function compare(predicted: number, measured: number): string {
-  if (!(predicted > 0)) return 'Your prediction was not a positive ratio, so there is no factor to compare.';
-  if (!(measured > 0)) return 'The measurement is not a positive ratio, so there is no factor to compare.';
+export function compare(predicted: number, measured: number, locale: Locale = 'en'): string {
+  const m = getMessages(locale).labKit;
+  if (!(predicted > 0)) return m.compareNotPositivePred;
+  if (!(measured > 0)) return m.compareNotPositiveMeas;
   const r = predicted / measured;
-  if (Math.abs(r - 1) <= 0.1) return 'Your prediction was within 10% of the measurement.';
-  return r < 1
-    ? `The measurement is ${fmt(1 / r)} times your prediction.`
-    : `Your prediction is ${fmt(r)} times the measurement.`;
+  if (Math.abs(r - 1) <= 0.1) return m.compareWithin10;
+  return r < 1 ? m.compareHigher(fmt(1 / r)) : m.compareLower(fmt(r));
 }
 
 interface RevealProps {
@@ -458,30 +462,35 @@ interface RevealProps {
 
 /** What follows a committed prediction: this machine's measurement, compared with it. */
 export function Reveal({ committed, measure: read, unit, reading, missing }: RevealProps & { committed: number }) {
+  const { locale, t } = useI18n();
+  const m = t.labKit;
   const { reports, loading, reload } = useLabs();
   const measured = read(reports);
   return (
     <>
       {measured.length ? (
-        measured.map((m) => (
-          <p key={m.backend} data-measured={fmt(m.value)} data-backend={m.backend}>
-            Measured on {m.device} ({m.backend}) with {m.whose}, in the run of {m.date}: <b>{fmt(m.value)}</b> {unit}{' '}
-            ({m.detail}). {compare(committed, m.value)}
+        measured.map((row) => (
+          <p key={row.backend} data-measured={fmt(row.value)} data-backend={row.backend}>
+            {m.measuredLine(row.device, row.backend, row.whose, row.date)} <b>{fmt(row.value)}</b> {unit}{' '}
+            ({row.detail}). {compare(committed, row.value, locale)}
           </p>
         ))
       ) : loading ? (
-        <p data-measured="loading">Reading reports.</p>
+        <p data-measured="loading">{t.common.readingReports}</p>
       ) : (
         <p data-measured="none">
-          No measurement on this machine yet.{' '}
+          {m.noMeasurementYet}{' '}
           {missing ?? (
             <>
-              Run <code>./verify.sh</code> without <code>--quick</code> on a machine with a GPU. It benchmarks the
-              reference solution, and your own kernel once that passes its tests.
+              {m.runVerifyWithoutQuickBefore}
+              <code>./verify.sh</code>
+              {m.runVerifyWithoutQuickMid}
+              <code>--quick</code>
+              {m.runVerifyWithoutQuickAfter}
             </>
           )}{' '}
           <button className="quiet" onClick={reload}>
-            Reload results
+            {t.common.reloadResults}
           </button>
         </p>
       )}
@@ -510,31 +519,33 @@ export function LabPrediction({
 // ---------------------------------------------------------------- the reader's results
 /** Pass/fail of the reader's own work on every backend. */
 export function WorkStatus({ lab: l }: { lab: Lab }) {
+  const { locale, t } = useI18n();
+  const m = t.labKit;
   const { reports, loading } = useLabs();
   return (
     <div className="row" data-work={l.id} style={{ marginBottom: '0.9rem' }}>
-      <b>Your work</b>
+      <b>{m.yourWork}</b>
       {BACKENDS.map((b) => {
         const run = reports[b];
         const { status: s, recorded, buildFailed, aborted, passed, total } = labSummary(run, l.id, 'work');
-        const absent = recorded ? null : noSource(l, b);
+        const absent = recorded ? null : noSource(l, b, locale);
         let body: ReactNode;
-        if (loading) body = <span className="muted">reading reports</span>;
+        if (loading) body = <span className="muted">{t.common.readingReportsShort}</span>;
         else if (absent) body = <span className="muted">{absent}</span>;
-        else if (!run) body = <span className="muted">{NO_RUN}</span>;
-        else if (buildFailed) body = <span className="chip fail">does not build</span>;
+        else if (!run) body = <span className="muted">{m.noRunOnMachine}</span>;
+        else if (buildFailed) body = <span className="chip fail">{m.doesNotBuild}</span>;
         else if (s === 'none')
           body = (
-            <span className="muted" title="No recorded run of this lab on this machine">
-              not started
+            <span className="muted" title={m.noRecordedRunTitle}>
+              {m.notStarted}
             </span>
           );
-        else if (s === 'pass') body = <span className="chip ok">passes, {passed} of {total} tests</span>;
+        else if (s === 'pass') body = <span className="chip ok">{m.passesTests(passed, total)}</span>;
         else {
           // `aborted`: an exit code other than 0 and 1, the run stopped early (a crash, or AddressSanitizer aborting it).
           body = (
             <span className="chip fail">
-              not passing: {passed} of {total} tests{aborted ? ', then the run aborted' : ''}
+              {m.notPassingTests(passed, total, aborted)}
             </span>
           );
         }
@@ -556,24 +567,24 @@ export function WorkStatus({ lab: l }: { lab: Lab }) {
  * data-race-status and data-race-work carry pass, fail or none for browser checks.
  */
 export function RaceStatus({ lab: l, work = true }: { lab: Lab; work?: boolean }) {
+  const { t } = useI18n();
+  const m = t.labKit;
   const { reports, loading, raceLabs } = useLabs();
   const run = reports.race;
   const sol = labSummary(run, l.id, 'solution');
   const mine = labSummary(run, l.id, 'work');
   const built = !raceLabs || raceLabs.includes(l.id) || sol.recorded || mine.recorded;
-  const tsan = (n: number) => (n ? `${n} ThreadSanitizer report${n === 1 ? '' : 's'}` : 'no race reported');
+  const tsan = (n: number) => m.tsanReports(n);
   const emuToo = labStatus(reports.emu, l.id, 'solution') === 'pass';
   const solText = (): string => {
-    if (sol.status === 'none') return `On this machine the reference solution has no run on the race backend yet.`;
-    if (sol.status === 'pass')
-      return `On this machine the reference solution passed all ${sol.total} tests on the race backend with ${tsan(sol.tsanReports)}: emulator-checked ${emuToo ? 'under both flavours' : 'on this flavour'}.`;
-    return `On the race backend the reference solution is unverified: ${FAILED} (${sol.passed} of ${sol.total} tests passed${sol.buildFailed ? ', a target did not build' : ''}${sol.aborted ? ', then the run aborted' : ''}, ${tsan(sol.tsanReports)}).`;
+    if (sol.status === 'none') return m.raceSolNone;
+    if (sol.status === 'pass') return m.raceSolPass(sol.total, tsan(sol.tsanReports), emuToo);
+    return m.raceSolFail(m.failedOnMachine, sol.passed, sol.total, sol.buildFailed, sol.aborted, tsan(sol.tsanReports));
   };
   const workText = (): string => {
-    if (mine.status === 'none') return 'Your own kernel has no recorded run there, or is still the untouched starter.';
-    if (mine.status === 'pass')
-      return `Your own kernel passed all ${mine.total} tests there with ${mine.tsanReports ? `${tsan(mine.tsanReports)}: read them` : 'no race reported'}.`;
-    return `Your own kernel passed ${mine.passed} of ${mine.total} tests there${mine.aborted ? ' before the run aborted' : ''}, with ${tsan(mine.tsanReports)} in the run.`;
+    if (mine.status === 'none') return m.raceWorkNone;
+    if (mine.status === 'pass') return m.raceWorkPass(mine.total, mine.tsanReports > 0, tsan(mine.tsanReports));
+    return m.raceWorkFail(mine.passed, mine.total, mine.aborted, tsan(mine.tsanReports));
   };
   return (
     <p
@@ -582,11 +593,11 @@ export function RaceStatus({ lab: l, work = true }: { lab: Lab; work?: boolean }
       data-race-lab={l.num}
     >
       {loading
-        ? 'Reading reports.'
+        ? t.common.readingReports
         : !built
-          ? `Lab ${l.num} is not built for the race backend (its CMakeLists.txt does not pass RACE).`
+          ? m.raceNotBuilt(l.num)
           : !run
-            ? 'No run on the race backend on this machine yet.'
+            ? m.raceNoRun
             : solText() + (work ? ' ' + workText() : '')}
     </p>
   );
@@ -620,8 +631,6 @@ export const msCol: Col = {
   },
 };
 
-const NO_BENCH = 'This lab has no benchmark. The result is the line above: every test passing on the emulator and on a device.';
-
 type LabResultsProps = { lab: Lab } & (
   | {
       /** Columns after Backend and Kernel. */
@@ -640,38 +649,36 @@ type LabResultsProps = { lab: Lab } & (
 
 /** "Lab N on this machine": the reader's status, then the benchmark rows the reports hold. */
 export function LabResults({ lab: l, cols, filter, noBench }: LabResultsProps) {
+  const { t } = useI18n();
+  const m = t.labKit;
   const { reports, loading, reload } = useLabs();
   const sets = cols ? benchSets(reports, l) : [];
   const any = sets.some((s) => s.rows.some((r) => !filter || filter(r)));
   return (
     <Bench
-      title={`Lab ${l.num} on this machine`}
+      title={m.labOnThisMachine(l.num)}
       task={
         <button className="quiet" onClick={reload}>
-          Reload results
+          {t.common.reloadResults}
         </button>
       }
-      foot={
-        noBench
-          ? "From this machine's recorded lab runs."
-          : "From this machine's recorded lab runs. Measurements, not expected values: another device, or another run, gives other numbers."
-      }
+      foot={noBench ? m.footNoBench : m.footBench}
     >
       <WorkStatus lab={l} />
       {noBench ? (
         <p className="muted" style={{ margin: 0 }}>
-          {noBench === true ? NO_BENCH : noBench}
+          {noBench === true ? m.noBenchDefault : noBench}
         </p>
       ) : any ? (
         <div className="panel" style={{ overflowX: 'auto' }}>
           <table className="data" style={{ margin: 0 }} data-results={l.num}>
             <thead>
               <tr>
-                <th>Backend</th>
-                <th>Kernel</th>
+                <th>{m.colBackend}</th>
+                <th>{m.colKernel}</th>
                 {(cols ?? []).map((c) => (
                   <th key={c.head} className={c.num ? 'num' : undefined}>
-                    {c.head}
+                    {c.head === 'Time, ms' ? m.timeMsHead : c.head}
                   </th>
                 ))}
               </tr>
@@ -685,7 +692,7 @@ export function LabResults({ lab: l, cols, filter, noBench }: LabResultsProps) {
                       <td>
                         {s.backend} <span className="muted">({s.device})</span>
                       </td>
-                      <td>{s.variant === 'work' ? 'yours' : 'reference solution'}</td>
+                      <td>{s.variant === 'work' ? m.kernelYours : m.kernelRef}</td>
                       {(cols ?? []).map((c) => (
                         <td key={c.head} className={c.num ? 'num' : undefined}>
                           {c.cell(r)}
@@ -700,11 +707,14 @@ export function LabResults({ lab: l, cols, filter, noBench }: LabResultsProps) {
       ) : (
         <p className="muted" style={{ margin: 0 }} data-results-empty={l.num}>
           {loading ? (
-            'Reading reports.'
+            t.common.readingReports
           ) : (
             <>
-              No benchmark rows for this lab on this machine. Run <code>./verify.sh</code> without{' '}
-              <code>--quick</code> on a machine with a GPU, then reload. The emulator is never benchmarked.
+              {m.noBenchRowsBefore}
+              <code>./verify.sh</code>
+              {m.noBenchRowsMid}
+              <code>--quick</code>
+              {m.noBenchRowsAfter}
             </>
           )}
         </p>
@@ -742,35 +752,37 @@ function LabFileTexts({ paths, children }: { paths: readonly string[]; children:
   );
 }
 
-const TAB: Record<LabSource, string> = { 'kernel.cu': 'CUDA', 'kernel.metal': 'Metal kernel', 'launch.mm': 'Metal host' };
-
 /** The real reference files, with a status per tab computed from the reports. */
 function SolutionCode({ lab: l, tiers }: { lab: Lab; tiers: Record<string, Tier> }) {
+  const { locale, t } = useI18n();
+  const m = t.labKit;
   const { reports } = useLabs();
   // kernel.cu is one source for CUDA, HIP and the emulator; its tab speaks for all three.
   const dir = `${l.id}/solution/`;
   // In the fixed order of the tabs, whatever order the descriptor lists them in.
   const sources = ALL_SOURCES.filter((f) => l.sources.includes(f));
   const absent = [
-    sources.includes('kernel.cu') ? '' : 'no kernel.cu, so nothing for CUDA, HIP or the emulator',
+    sources.includes('kernel.cu') ? '' : m.absentKernelCu,
     sources.includes('kernel.metal') && sources.includes('launch.mm')
       ? ''
-      : 'no ' + (['kernel.metal', 'launch.mm'] as LabSource[]).filter((f) => !sources.includes(f)).join(' or '),
+      : m.absentMetalPrefix + (['kernel.metal', 'launch.mm'] as LabSource[]).filter((f) => !sources.includes(f)).join(m.absentMetalOr),
   ].filter(Boolean);
   return (
     <LabFileTexts paths={sources.map((f) => dir + f)}>
       {(texts) => (
         <Code
           tabs={sources.map((f, i) => ({
-            label: TAB[f],
-            code: texts[i] ?? `// loading labs/${dir}${f}`,
-            status: solutionTabStatus(reports, l, f),
+            label: m.tabs[f],
+            code: texts[i] ?? m.loadingLabFile(dir, f),
+            status: solutionTabStatus(reports, l, f, locale),
             tiers,
           }))}
           caption={
             <>
-              Reference solution of lab {l.num}, shown from <code>labs/{dir}</code>. The status by the tabs is
-              computed from this machine's reports.{absent.length ? ` This lab has ${absent.join(', and ')}.` : null}
+              {m.solutionCaptionBefore(l.num)}
+              <code>labs/{dir}</code>
+              {m.solutionCaptionMid}
+              {absent.length ? m.solutionCaptionAbsent(absent.join(m.absentAnd)) : null}
             </>
           }
         />
@@ -788,21 +800,23 @@ export function ReferenceSolution({
   /** Identifier colours for this lab, if they differ from the page's. */
   tiers?: Record<string, Tier>;
 }) {
+  const { t } = useI18n();
+  const m = t.labKit;
   const kit = useLabs();
   const [open, setOpen] = useState(false);
   if (!l.sources.length)
     return (
       <p className="ui muted" data-solution={l.num}>
-        This lab has no kernel.cu, kernel.metal or launch.mm, so there is no reference source to show here.
+        {m.noRefSources}
       </p>
     );
   return (
     <>
       <p className="ui" data-solution={l.num}>
         <button className="quiet" aria-expanded={open} onClick={() => setOpen(!open)}>
-          {open ? 'Hide the reference solution' : 'Show the reference solution'}
+          {open ? m.hideRefSolution : m.showRefSolution}
         </button>{' '}
-        <span className="muted">Worth more after you have a version of your own that passes.</span>
+        <span className="muted">{m.worthMoreNote}</span>
       </p>
       {open ? <SolutionCode lab={l} tiers={tiers ?? kit.tiers} /> : null}
     </>
@@ -812,19 +826,32 @@ export function ReferenceSolution({
 // ---------------------------------------------------------------- standard sections
 /** The page's opening: the chapter's lead, then how every lab directory is laid out. */
 export function LabsIntro({ children }: { children: ReactNode }) {
+  const { t } = useI18n();
+  const m = t.labKit;
   return (
     <>
       <p>
-        {children} Every lab holds the same three files three times over: <code>starter/</code> is the exercise as
-        shipped, <code>work/</code> is yours and starts as a copy of the starter, and <code>solution/</code> is the
-        reference. A driver, <code>main.cpp</code>, tests what is in <code>work/</code> against a CPU reference and,
-        on a real device, times it. You do not edit the driver.
+        {children}
+        {m.labsIntroP1A}
+        <code>starter/</code>
+        {m.labsIntroP1B}
+        <code>work/</code>
+        {m.labsIntroP1C}
+        <code>solution/</code>
+        {m.labsIntroP1D}
+        <code>main.cpp</code>
+        {m.labsIntroP1E}
+        <code>work/</code>
+        {m.labsIntroP1F}
       </p>
       <p>
-        The three files are <code>kernel.cu</code>, <code>kernel.metal</code> and <code>launch.mm</code>. The first is
-        plain CUDA and is built three ways from the one source: for CUDA, for HIP through a header of name mappings,
-        and for a CPU emulator. The other two are the same kernel and its launch in Metal's shading language and
-        Metal's host API.
+        {m.labsIntroP2A}
+        <code>kernel.cu</code>
+        {m.labsIntroP2B}
+        <code>kernel.metal</code>
+        {m.labsIntroP2C}
+        <code>launch.mm</code>
+        {m.labsIntroP2D}
       </p>
     </>
   );
@@ -832,6 +859,8 @@ export function LabsIntro({ children }: { children: ReactNode }) {
 
 /** The commands a reader needs, with `example` (a lab number of this chapter) in the per-lab ones. */
 export function CommandsTable({ example }: { example: string }) {
+  const { t } = useI18n();
+  const m = t.labKit;
   const { labs } = useLabs();
   if (!labs.some((l) => l.num === example)) complain(`the example lab ${example} is not one of this page's labs.`);
   // Each command and sentence is one string, so it is laid out as one run of text.
@@ -841,8 +870,8 @@ export function CommandsTable({ example }: { example: string }) {
       <table className="data">
         <thead>
           <tr>
-            <th>Command, from the repository root</th>
-            <th>What it does</th>
+            <th>{m.cmdHeadCommand}</th>
+            <th>{m.cmdHeadWhat}</th>
           </tr>
         </thead>
         <tbody>
@@ -851,50 +880,61 @@ export function CommandsTable({ example }: { example: string }) {
               <code>./verify.sh</code>
             </td>
             <td>
-              Every lab, every available backend, your work and the reference solutions; writes{' '}
-              <code>reports/verify-*.md</code> and refreshes what this page shows. <code>--quick</code> skips the
-              benchmarks.
+              {m.cmdVerifyA}
+              <code>reports/verify-*.md</code>
+              {m.cmdVerifyB}
+              <code>--quick</code>
+              {m.cmdVerifyC}
             </td>
           </tr>
           <tr>
             <td>
               <code>python3 labs/pmpp.py doctor</code>
             </td>
-            <td>Which backends can be built here, why the others cannot, and what each device reports.</td>
+            <td>{m.cmdDoctor}</td>
           </tr>
           <tr>
             <td>
               <code>{run}</code>
             </td>
-            <td>{`Tests your work for lab ${example} on every backend.`}</td>
+            <td>{m.cmdRun(example)}</td>
           </tr>
           <tr>
             <td>
               <code>{`${run} --bench`}</code>
             </td>
-            <td>The same, then the benchmark if the tests pass.</td>
+            <td>{m.cmdBench}</td>
           </tr>
           <tr>
             <td>
               <code>{`${run} --backend emu`}</code>
             </td>
             <td>
-              One backend only: <code>emu</code>, <code>metal</code>, <code>cuda</code> or <code>hip</code>.
+              {m.cmdBackendA}
+              <code>emu</code>
+              {m.cmdBackendB}
+              <code>metal</code>
+              {m.cmdBackendB}
+              <code>cuda</code>
+              {m.cmdBackendC}
+              <code>hip</code>
+              {m.cmdBackendD}
             </td>
           </tr>
           <tr>
             <td>
               <code>{`${run} --solution`}</code>
             </td>
-            <td>Runs the reference solution in place of your work.</td>
+            <td>{m.cmdSolution}</td>
           </tr>
           <tr>
             <td>
               <code>{`python3 labs/pmpp.py reset ${example} --yes`}</code>
             </td>
             <td>
-              {`Overwrites your work for lab ${example} with the starter. It is the only command here that replaces files in`}{' '}
-              <code>work/</code>.
+              {m.cmdResetA(example)}
+              <code>work/</code>
+              {m.cmdResetB}
             </td>
           </tr>
         </tbody>
@@ -913,24 +953,36 @@ export function RunningLabs({
   /** Another place that shows the same runs, e.g. <>the roofline of <a href=...>section 5.1</a></>. */
   alsoShownIn?: ReactNode;
 }) {
+  const { t } = useI18n();
+  const m = t.labKit;
   return (
     <>
-      <h2>Running them</h2>
-      <p>
-        One command builds, tests and benchmarks everything on every backend the machine has. The others are for the
-        loop you will actually be in: edit, run one lab, read the failures.
-      </p>
+      <h2>{m.runningThemHeading}</h2>
+      <p>{m.runningThemLead}</p>
       <CommandsTable example={example} />
       <p>
-        This page reads <code>reports/runs/</code>. Both <code>./verify.sh</code> and <code>pmpp.py run</code> write
-        there, so what you just ran shows up here{alsoShownIn ? <>, and in {alsoShownIn},</> : null} when you reload
-        the page. Only <code>./verify.sh</code> also writes the report file you can keep or share.
+        {m.runningThemP2A}
+        <code>reports/runs/</code>
+        {m.runningThemP2B}
+        <code>./verify.sh</code>
+        {m.runningThemP2C}
+        <code>pmpp.py run</code>
+        {m.runningThemP2D}
+        {alsoShownIn ? (
+          <>
+            {m.runningThemAlsoPrefix}
+            {alsoShownIn}
+            {m.runningThemAlsoSuffix}
+          </>
+        ) : null}
+        {m.runningThemP2E}
+        <code>./verify.sh</code>
+        {m.runningThemP2F}
       </p>
       <Aside>
         <p>
-          <b>What the numbers here mean.</b> Every figure on this page was measured on the machine the app is running
-          on, in the run whose date is shown. None is an expected value. A different device, driver or run gives
-          different numbers, and that difference is what the labs are for.
+          <b>{m.whatNumbersMeanTitle}</b>
+          {m.whatNumbersMeanBody}
         </p>
       </Aside>
     </>
@@ -939,16 +991,18 @@ export function RunningLabs({
 
 /** "The four backends": what a pass on each tells you, and what the emulator is and is not. */
 export function BackendsAndEmulator() {
+  const { t } = useI18n();
+  const m = t.labKit;
   return (
     <>
-      <h2>The four backends</h2>
+      <h2>{m.fourBackendsHeading}</h2>
       <div className="wide" style={{ maxWidth: '58rem', overflowX: 'auto' }}>
         <table className="data">
           <thead>
             <tr>
-              <th>Backend</th>
-              <th>Builds on</th>
-              <th>What a pass there tells you</th>
+              <th>{m.colBackend}</th>
+              <th>{m.colBuildsOn}</th>
+              <th>{m.colWhatPassTells}</th>
             </tr>
           </thead>
           <tbody>
@@ -956,63 +1010,68 @@ export function BackendsAndEmulator() {
               <td>
                 <code>metal</code>
               </td>
-              <td>macOS</td>
-              <td>The Metal kernel compiled, ran on that Mac's GPU and matched the CPU reference.</td>
+              <td>{m.buildsMacOS}</td>
+              <td>{m.passMetal}</td>
             </tr>
             <tr>
               <td>
                 <code>cuda</code>
               </td>
-              <td>Linux with the CUDA toolkit</td>
+              <td>{m.buildsLinuxCuda}</td>
               <td>
-                The <code>.cu</code> kernel compiled, ran on that NVIDIA GPU and matched.
+                {m.passCudaA}
+                <code>.cu</code>
+                {m.passCudaB}
               </td>
             </tr>
             <tr>
               <td>
                 <code>hip</code>
               </td>
-              <td>Linux with ROCm</td>
+              <td>{m.buildsLinuxRocm}</td>
               <td>
-                The same <code>.cu</code> source, compiled as HIP, ran on that AMD GPU and matched.
+                {m.passHipA}
+                <code>.cu</code>
+                {m.passHipB}
               </td>
             </tr>
             <tr>
               <td>
                 <code>emu</code>
               </td>
-              <td>anywhere</td>
+              <td>{m.buildsAnywhere}</td>
               <td>
-                The same <code>.cu</code> source has correct logic on a CPU emulator. Nothing about a GPU.
+                {m.passEmuA}
+                <code>.cu</code>
+                {m.passEmuB}
               </td>
             </tr>
           </tbody>
         </table>
       </div>
       <p>
-        The emulator exists so that a <code>.cu</code> kernel can be run and tested on a machine with no CUDA or HIP
-        device. It is not a GPU and not an implementation of CUDA. It reproduces the parts of the model that decide
-        whether a kernel is <em>correct</em>: block and thread indices, a private copy of each automatic variable per
-        thread, <code>__shared__</code> arrays visible to the whole block, <code>__syncthreads()</code> as a real
-        barrier, and dynamically sized shared memory.
+        {m.emuP1A}
+        <code>.cu</code>
+        {m.emuP1B}
+        <em>{m.emuP1Em}</em>
+        {m.emuP1C}
+        <code>__shared__</code>
+        {m.emuP1D}
+        <code>__syncthreads()</code>
+        {m.emuP1E}
+      </p>
+      <p>{m.emuP2}</p>
+      <p>
+        {m.emuP3A}
+        <code>__syncwarp</code>
+        {m.emuP3B}
+        <code>0xCD</code>
+        {m.emuP3C}
       </p>
       <p>
-        Two properties make it a good first stop when something is wrong. It runs each test under three fixed thread
-        orders (in order, reversed, shuffled), so a missing barrier gives a wrong answer every time, where a GPU
-        might give one now and then. And it is built with AddressSanitizer, so a read or write outside an array stops
-        the run with a report that names the source line.
-      </p>
-      <p>
-        It also models warps as groups of 32 threads in index order, with the warp intrinsics (shuffles, votes,{' '}
-        <code>__syncwarp</code>), and fills every block's shared memory with <code>0xCD</code> bytes, so reading a
-        slot nobody wrote shows up every time, where a GPU promises nothing about its contents.
-      </p>
-      <p>
-        What it cannot tell you: anything about time, bandwidth, caches, coalescing, bank conflicts, divergence cost
-        or occupancy, and nothing about lockstep execution inside a warp. Only one emulated thread runs at a time,
-        switching at barriers, so it is not real concurrency (the <code>race</code> flavour runs threads at once under
-        ThreadSanitizer for that). Host and device memory are the same memory, so dereferencing a device pointer on
-        the host goes unnoticed. It is never benchmarked.
+        {m.emuP4A}
+        <code>race</code>
+        {m.emuP4B}
       </p>
     </>
   );
@@ -1024,20 +1083,27 @@ export function BackendsAndEmulator() {
  * HIP machine changes that record.
  */
 export function CudaHipCaveat() {
+  const { t } = useI18n();
+  const m = t.labKit;
   return (
     <>
       <p>
-        A standing caveat from the course author's own record (<code>PROGRESS.md</code>): the author has run these
-        solutions on Metal and on the emulator only. The CUDA sources are <b>front-end-checked</b>, meaning clang's
-        CUDA mode parsed them against stub declarations and nothing was executed, and they are <b>unverified</b> on
-        any NVIDIA device. The HIP path, including its header of name mappings, has never been compiled:{' '}
-        <b>unverified</b>. A "verified on CUDA" or "verified on HIP" in the table above can therefore only ever come
-        from your own machine.
+        {m.caveatP1A}
+        <code>PROGRESS.md</code>
+        {m.caveatP1B}
+        <b>{m.caveatP1B1}</b>
+        {m.caveatP1C}
+        <b>{m.caveatP1B2}</b>
+        {m.caveatP1D}
+        <b>{m.caveatP1B3}</b>
+        {m.caveatP1E}
       </p>
       <p>
-        You can help close that gap. On a machine with a CUDA or ROCm toolkit, run <code>./verify.sh</code> and bring
-        back the report it writes, <code>reports/verify-&lt;time&gt;-&lt;os&gt;-&lt;backends&gt;.md</code>. If a
-        reference solution fails there, the report's failure details are what is needed to fix it.
+        {m.caveatP2A}
+        <code>./verify.sh</code>
+        {m.caveatP2B}
+        <code>reports/verify-&lt;time&gt;-&lt;os&gt;-&lt;backends&gt;.md</code>
+        {m.caveatP2C}
       </p>
     </>
   );
@@ -1045,17 +1111,25 @@ export function CudaHipCaveat() {
 
 /** "Verification status of the reference solutions": the vocabulary, the table, the caveat. */
 export function VerificationStatus() {
+  const { t } = useI18n();
+  const m = t.labKit;
   return (
     <>
-      <h2>Verification status of the reference solutions</h2>
+      <h2>{m.verifHeading}</h2>
       <p>
-        A lab can only teach you something if its reference solution is right, so here is exactly how far each has
-        been checked <em>on this machine</em>. Each phrase has one meaning. <b>verified on Metal</b> (or CUDA, or
-        HIP) means compiled and run on that device here, with results matching a CPU reference.{' '}
-        <b>emulator-checked</b> means the logic passed on the CPU emulator and nothing more.{' '}
-        <b>no run on this machine</b> means there is no evidence here either way, and{' '}
-        <b>unverified: failed on this machine</b> means a run here did not pass. When a lab on this page is also built
-        for the race emulator (the emulator with real threads under ThreadSanitizer), a <b>race</b> column shows it.
+        {m.verifP1A}
+        <em>{m.verifP1Em}</em>
+        {m.verifP1B}
+        <b>{m.verifP1B1}</b>
+        {m.verifP1C}
+        <b>{m.verifP1B2}</b>
+        {m.verifP1D}
+        <b>{m.verifP1B3}</b>
+        {m.verifP1E}
+        <b>{m.verifP1B4}</b>
+        {m.verifP1F}
+        <b>{m.verifP1B5}</b>
+        {m.verifP1G}
       </p>
       <SolutionStatusTable />
       <CudaHipCaveat />

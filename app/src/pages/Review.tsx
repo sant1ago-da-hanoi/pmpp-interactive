@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Ask, type Question } from '../components/Ask';
+import { useI18n } from '../lib/i18n';
 import { useProgress } from '../lib/progress';
 import { INTERVAL_DAYS, isDue } from '../lib/review';
 import { loadAllQuestions } from '../chapters/registry';
 
 // Questions you have met come back here on a widening schedule.
 export function Review() {
+  const { t } = useI18n();
   const { progress, loaded } = useProgress();
   const [questions, setQuestions] = useState<Record<string, Question>>();
   useEffect(() => {
@@ -29,34 +31,33 @@ export function Review() {
     <article className="page" data-ready={ready ? '' : undefined}>
       <header className="section-head">
         <span className="num" />
-        <h1>Review</h1>
+        <h1>{t.review.title}</h1>
         <p className="lede">
-          Every question you answer in a lesson comes back here after {INTERVAL_DAYS.join(', ')} days, moving up a step
-          each time you get it right and back to the start when you miss.
+          {t.review.lede(INTERVAL_DAYS.join(', '))}
         </p>
       </header>
       <div className="prose">
         {!ready ? (
-          <p className="muted">Loading…</p>
+          <p className="muted">{t.common.loading}</p>
         ) : q ? (
           <>
             <p className="status-line">
-              Question {pos + 1} of {queue.length} due today
+              {t.review.questionOf(pos + 1, queue.length)}
             </p>
-            <Ask key={q.id} q={q} review label="From an earlier lesson" onResult={() => setAnswered(true)} />
+            <Ask key={q.id} q={q} review label={t.review.fromEarlierLesson} onResult={() => setAnswered(true)} />
             <p>
               <button className="primary" disabled={!answered} onClick={() => { setPos(pos + 1); setAnswered(false); }}>
-                {pos + 1 < queue.length ? 'Next question' : 'Finish'}
+                {pos + 1 < queue.length ? t.review.nextQuestion : t.review.finish}
               </button>
             </p>
           </>
         ) : (
           <p>
             {queue.length
-              ? 'That was the last one due today.'
+              ? t.review.finishedToday
               : scheduled
-                ? `Nothing is due today. ${scheduled} question${scheduled === 1 ? ' is' : 's are'} scheduled for later.`
-                : 'Nothing is scheduled yet. Questions enter the schedule the first time you answer them in a lesson.'}
+                ? t.review.scheduledLater(scheduled)
+                : t.review.nothingScheduled}
           </p>
         )}
       </div>

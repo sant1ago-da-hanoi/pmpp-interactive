@@ -1,6 +1,7 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import type { Tier } from './notes';
 import { excerptFunction, type Excerpt } from '../lib/excerpt';
+import { useI18n } from '../lib/i18n';
 
 // A small C-family highlighter. Its one unusual job: identifiers are coloured by
 // the memory they live in (register, shared, global), the same colours the
@@ -141,6 +142,7 @@ export function Code({
 
 /** Fetches a lab file once per path. `failed` is set when the server could not give it. */
 function useRawLabFile(path: string): { text: string | null; failed: boolean } {
+  const { t } = useI18n();
   // Each answer carries the path it belongs to, so a late answer for an earlier path is never shown.
   const [got, setGot] = useState<{ path: string; text: string; failed: boolean } | null>(null);
   const [asked, setAsked] = useState<string | null>(null);
@@ -149,7 +151,7 @@ function useRawLabFile(path: string): { text: string | null; failed: boolean } {
     fetch('/api/lab-file?path=' + encodeURIComponent(path))
       .then((r) => (r.ok ? r.text() : Promise.reject(new Error(String(r.status)))))
       .then((text) => setGot({ path, text, failed: false }))
-      .catch(() => setGot({ path, text: '// could not load labs/' + path, failed: true }));
+      .catch(() => setGot({ path, text: t.code.couldNotLoad(path), failed: true }));
   }
   return got && got.path === path ? got : { text: null, failed: false };
 }
@@ -180,6 +182,7 @@ export function useLabExcerpt(
   fn: string,
   opts?: { comment?: boolean },
 ): (Excerpt & { found: boolean }) | null {
+  const { t } = useI18n();
   const { text, failed } = useRawLabFile(path);
   const comment = opts?.comment;
   return useMemo(() => {
@@ -187,6 +190,6 @@ export function useLabExcerpt(
     const whole = { text, firstLine: 1, lastLine: text.split('\n').length, found: !failed };
     if (!fn || failed) return whole;
     const e = excerptFunction(text, fn, { comment });
-    return e ? { ...e, found: true } : { text: `// no definition of ${fn} in labs/${path}\n`, firstLine: 1, lastLine: 1, found: false };
-  }, [text, failed, fn, comment, path]);
+    return e ? { ...e, found: true } : { text: t.code.noDefinition(fn, path), firstLine: 1, lastLine: 1, found: false };
+  }, [text, failed, fn, comment, path, t]);
 }
