@@ -22,6 +22,7 @@ import {
   type State,
 } from '../../sim/gemmreads';
 import { OuterProductScene } from './OuterProductScene';
+import { useI18n } from '../../lib/i18n';
 
 // ---------------------------------------------------------------- the two mm functions, from the labs
 export const LABS154 = defineLabs('ch15', [
@@ -48,6 +49,7 @@ export function functionOf(text: string, name: string): { code: string; firstLin
 }
 
 function TwoMm() {
+  const { locale } = useI18n();
   const { reports } = useReports();
   const f1 = useLabFile(MM_FILES.v1);
   const f2 = useLabFile(MM_FILES.v2);
@@ -57,12 +59,12 @@ function TwoMm() {
   return (
     <div className="wide" data-two-mm>
       <Code
-        tabs={[{ label: 'mm, lab 15.1 (Fig. 15.6)', code: m1 ? m1.code : f1, tiers: TIERS, status: cuStatus(reports, LAB1) }]}
+        tabs={[{ label: 'mm, lab 15.1 (Fig. 15.6)', code: m1 ? m1.code : f1, tiers: TIERS, status: cuStatus(reports, LAB1, locale) }]}
         firstLine={m1?.firstLine ?? 1}
         caption={<>From <code>labs/{MM_FILES.v1}</code>: <code>i</code> innermost, two shared reads per multiply-add.</>}
       />
       <Code
-        tabs={[{ label: 'mm, lab 15.2 (Fig. 15.9)', code: m2 ? m2.code : f2, tiers: TIERS, status: cuStatus(reports, LAB2) }]}
+        tabs={[{ label: 'mm, lab 15.2 (Fig. 15.9)', code: m2 ? m2.code : f2, tiers: TIERS, status: cuStatus(reports, LAB2, locale) }]}
         firstLine={m2?.firstLine ?? 1}
         caption={<>From <code>labs/{MM_FILES.v2}</code>: <code>i</code> outermost, strips in registers.</>}
       />

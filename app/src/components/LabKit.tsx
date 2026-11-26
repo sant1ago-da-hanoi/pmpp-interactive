@@ -251,9 +251,7 @@ export function solutionStatus(reports: Reports, b: Backend, l: Lab, locale: Loc
  * the file is unchanged since, and only until CUDA itself has passed). It says a run failed
  * whenever one did.
  */
-// Temporary `locale: Locale = 'en'` default on this and the other exported helpers
-// (solutionStatus, raceSolutionStatus, compare, whose) until the chapter prose
-// translation pass wires `locale` from `useI18n()` into the chapter call sites.
+// Default `locale: Locale = 'en'` is kept for unit tests and optional callers; chapter call sites pass `locale` from `useI18n()`.
 export function solutionTabStatus(reports: Reports, l: Lab | string, file: LabSource, locale: Locale = 'en'): string {
   const msg = getMessages(locale);
   const m = msg.labKit;
@@ -433,11 +431,12 @@ export function measure(
   reports: Reports,
   l: Lab,
   pick: (set: BenchSet) => { value: number; detail: string; whose?: string } | null | undefined,
+  locale: Locale = 'en',
 ): Measured[] {
   return preferredBench(reports, l).flatMap((s) => {
     const m = pick(s);
     if (!m || !isFinite(m.value)) return [];
-    return [{ backend: s.backend, device: s.device, date: s.date, whose: m.whose ?? whose(s), value: m.value, detail: m.detail }];
+    return [{ backend: s.backend, device: s.device, date: s.date, whose: m.whose ?? whose(s, locale), value: m.value, detail: m.detail }];
   });
 }
 
@@ -454,7 +453,7 @@ export function compare(predicted: number, measured: number, locale: Locale = 'e
 
 interface RevealProps {
   /** Reports to measured values, one per backend. Build it with measure(). */
-  measure: (reports: Reports) => Measured[];
+  measure: (reports: Reports, locale: Locale) => Measured[];
   /** What the number is a multiple of, e.g. "× the naive kernel". */
   unit: string;
   /** How to read the number, without saying what it should be. */
@@ -468,7 +467,7 @@ export function Reveal({ committed, measure: read, unit, reading, missing }: Rev
   const { locale, t } = useI18n();
   const m = t.labKit;
   const { reports, loading, reload } = useLabs();
-  const measured = read(reports);
+  const measured = read(reports, locale);
   return (
     <>
       {measured.length ? (

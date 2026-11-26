@@ -50,6 +50,7 @@ import {
   type Tile,
 } from '../../sim/wavetile';
 import { ShearScene } from './ShearScene';
+import { useI18n, type Locale } from '../../lib/i18n';
 
 // Section 16.6 of the course: book §§16.5–16.8 (pp. 382–398) for the tiled Smith-Waterman
 // kernels. Everything the interactives show is computed by src/sim/wavetile.ts and
@@ -67,8 +68,8 @@ const SW_TIERS: Record<string, Tier> = {
 };
 
 /** Status lines of the lab's files, in the labs page's words (LabKit's solutionTabStatus). */
-function labStatuses(reports: Reports): { cu: string; metal: string } {
-  return { cu: solutionTabStatus(reports, LAB, 'kernel.cu'), metal: solutionTabStatus(reports, LAB, 'kernel.metal') };
+function labStatuses(reports: Reports, locale: Locale = 'en'): { cu: string; metal: string } {
+  return { cu: solutionTabStatus(reports, LAB, 'kernel.cu', locale), metal: solutionTabStatus(reports, LAB, 'kernel.metal', locale) };
 }
 
 // ---------------------------------------------------------------- the load functions the stepper highlights
@@ -1089,8 +1090,9 @@ export const questionsS166: Record<string, Question> = {
 // ---------------------------------------------------------------- the page
 
 function LabListing() {
+  const { locale } = useI18n();
   const { reports } = useReports();
-  const st = labStatuses(reports);
+  const st = labStatuses(reports, locale);
   const cu = useLabFile(LAB_DIR + 'kernel.cu');
   const metal = useLabFile(LAB_DIR + 'kernel.metal');
   const mm = useLabFile(LAB_DIR + 'launch.mm');

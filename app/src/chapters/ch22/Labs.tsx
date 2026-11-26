@@ -25,6 +25,7 @@ import {
 import { fmt, num, type BenchRow, type Reports } from '../../lib/reports';
 import { href } from '../../lib/router';
 import { M8_GEMMS, kneeOf, measuredDevices, thresholdOf, type ReportsLike } from '../../sim/batching';
+import { useI18n } from '../../lib/i18n';
 
 // The page is built from components/LabKit.tsx; what is here is chapter 22's own content.
 // No question on this page: the labs are the exercise. (Predictions are stored, not graded.)
@@ -262,6 +263,7 @@ function Threshold() {
 
 /** Per backend and GEMM: the knee, batch 1 against the best batch, and the batched step against one-by-one steps. */
 function BatchingSummary() {
+  const { locale } = useI18n();
   const { reports, loading } = useLabs();
   if (loading) return null;
   const rows = preferredBench(reports, l2).flatMap((s) =>
@@ -326,7 +328,7 @@ function BatchingSummary() {
         </tbody>
       </table>
       <p className="status-line" style={{ margin: '-0.8rem 0 1.4rem' }}>
-        From {rows.map((r) => whose(r.s)).filter((w, i, a) => a.indexOf(w) === i).join('; ')}. The knee is the first batch
+        From {rows.map((r) => whose(r.s, locale)).filter((w, i, a) => a.indexOf(w) === i).join('; ')}. The knee is the first batch
         whose time per step is at least 1.5 times the time at the smallest batch (our definition).
       </p>
     </div>

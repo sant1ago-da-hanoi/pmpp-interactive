@@ -17,6 +17,7 @@ import {
   type TiledRun,
 } from '../../sim/mergetile';
 import { TileWasteScene } from './TileWasteScene';
+import { useI18n } from '../../lib/i18n';
 
 // Section 13.3's part on staging (book §13.6, with §13.7 in one paragraph): why the
 // book's tiled kernel loads a full tile of each input, what that wastes, the exact-load
@@ -410,14 +411,15 @@ export const LAB_TIERS: Record<string, Tier> = {
 };
 
 function LabTiled() {
+  const { locale } = useI18n();
   const { reports } = useReports();
   const cu = partOf(useLabFile(`${LAB}/solution/kernel.cu`), /^\/\/ -{20,} Part \(b\)/, /^\/\/ -{20,} Provided/);
   const metal = partOf(useLabFile(`${LAB}/solution/kernel.metal`), /^\/\/ Part \(b\), step 1/, /^\/\/ -{20,} Provided/);
   return (
     <Code
       tabs={[
-        { label: 'CUDA', code: cu ?? `// loading labs/${LAB}/solution/kernel.cu`, tiers: LAB_TIERS, status: solutionTabStatus(reports, LAB, 'kernel.cu') },
-        { label: 'Metal', code: metal ?? `// loading labs/${LAB}/solution/kernel.metal`, tiers: LAB_TIERS, status: solutionTabStatus(reports, LAB, 'kernel.metal') },
+        { label: 'CUDA', code: cu ?? `// loading labs/${LAB}/solution/kernel.cu`, tiers: LAB_TIERS, status: solutionTabStatus(reports, LAB, 'kernel.cu', locale) },
+        { label: 'Metal', code: metal ?? `// loading labs/${LAB}/solution/kernel.metal`, tiers: LAB_TIERS, status: solutionTabStatus(reports, LAB, 'kernel.metal', locale) },
       ]}
       caption={
         <>

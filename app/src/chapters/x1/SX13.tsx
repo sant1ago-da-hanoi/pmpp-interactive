@@ -31,6 +31,7 @@ import {
   type RepRule,
 } from '../../sim/penalties';
 import { functionSource } from '../../sim/toolchain';
+import { useI18n } from '../../lib/i18n';
 
 const FACTS = 'notes/today/x1-facts.md';
 const LAB = 'ch09/lab3_tokencounts';
@@ -453,8 +454,9 @@ function AccessExplorer() {
 
 // ---------------------------------------------------------------- the listing
 function PenaltyListing() {
+  const { locale } = useI18n();
   const { reports } = useReports();
-  const STATUS = { cu: solutionTabStatus(reports, LAB, 'kernel.cu'), metal: solutionTabStatus(reports, LAB, 'kernel.metal') };
+  const STATUS = { cu: solutionTabStatus(reports, LAB, 'kernel.cu', locale), metal: solutionTabStatus(reports, LAB, 'kernel.metal', locale) };
   const cu = useLabFile(LAB + '/solution/kernel.cu');
   const metal = useLabFile(LAB + '/solution/kernel.metal');
   const k = cu ? functionSource(cu, 'applyPenalties') : null;

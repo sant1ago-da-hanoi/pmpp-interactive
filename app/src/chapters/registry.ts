@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { Question } from '../components/Ask';
+import type { Locale } from '../lib/i18n';
 import type { Chapter, PlanRow } from './types';
 
 // Every chapter is its own module, loaded on demand, and inside a chapter every
@@ -46,7 +47,7 @@ export function loadChapter(id: string): Promise<Chapter> | undefined {
 }
 
 /** The chapter with this id: undefined while loading, null if there is none. */
-export function useChapter(id: string | undefined): Chapter | null | undefined {
+export function useChapter(id: string | undefined, locale: Locale = 'en'): Chapter | null | undefined {
   const [state, setState] = useState<{ id?: string; chapter?: Chapter | null }>({});
   useEffect(() => {
     let live = true;
@@ -57,7 +58,16 @@ export function useChapter(id: string | undefined): Chapter | null | undefined {
       live = false;
     };
   }, [id]);
-  return state.id === id ? state.chapter : undefined;
+  const raw = state.id === id ? state.chapter : undefined;
+  return useMemo(() => {
+    if (!raw || locale !== 'vi') return raw;
+    return {
+      ...raw,
+      sections: raw.sections.map((s) =>
+        s.loadVi ? { ...s, load: () => s.loadVi!().catch(() => s.load()) } : s,
+      ),
+    };
+  }, [raw, locale]);
 }
 
 /** Every chapter's metadata (not its sections' code). */

@@ -17,6 +17,7 @@ import {
   type Step,
   type ViolationKind,
 } from '../../sim/tiled';
+import { useI18n } from '../../lib/i18n';
 
 // ---------------------------------------------------------------- the five switches
 type Opt = 'guardM' | 'guardN' | 'guardP' | 'zeroFillM' | 'zeroFillN';
@@ -616,6 +617,7 @@ const USES: { code: string; what: string; answer: Dim; nudge: string }[] = [
 ];
 
 function ReferenceKernel() {
+  const { locale } = useI18n();
   const file = useLabFile('ch05/lab3_gemm/solution/kernel.cu');
   const { reports } = useReports();
   // Mark every line of code (not comment) that uses one of the three dimensions.
@@ -629,7 +631,7 @@ function ReferenceKernel() {
           label: 'CUDA',
           code: file ?? '// loading labs/ch05/lab3_gemm/solution/kernel.cu',
           tiers: MATMUL_TIERS,
-          status: solutionTabStatus(reports, 'ch05/lab3_gemm', 'kernel.cu'),
+          status: solutionTabStatus(reports, 'ch05/lab3_gemm', 'kernel.cu', locale),
         },
       ]}
       highlight={highlight}

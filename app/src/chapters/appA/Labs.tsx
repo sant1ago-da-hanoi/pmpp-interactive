@@ -23,6 +23,7 @@ import {
 } from '../../components/LabKit';
 import { fmt, labStatus, num, type BenchRow, type Reports } from '../../lib/reports';
 import { href } from '../../lib/router';
+import { useI18n } from '../../lib/i18n';
 
 // The page is built from components/LabKit.tsx; what is here is appendix A's own content.
 // The lab runner resolves "A.1" to appA/lab1_ and also finds a directory prefix by
@@ -157,6 +158,7 @@ function cellOf(r: BenchRow | undefined) {
 }
 
 function Accuracy() {
+  const { locale } = useI18n();
   const { reports, loading, reload } = useLabs();
   const sets = preferredBench(reports, l1).filter((s) => s.rows.some((r) => r.name === 'accuracy'));
   return (
@@ -175,7 +177,7 @@ function Accuracy() {
           return (
             <div key={s.backend} style={{ marginBottom: '0.8rem' }}>
               <p className="muted" style={{ margin: '0 0 0.4rem' }}>
-                {s.backend} ({s.device}), {s.date}, {whose(s)}. n = {String(one?.n ?? '')}; tree and Kahan at coarse{' '}
+                {s.backend} ({s.device}), {s.date}, {whose(s, locale)}. n = {String(one?.n ?? '')}; tree and Kahan at coarse{' '}
                 {String(one?.coarse ?? '')}, block {String(one?.block ?? '')}.
               </p>
               <div className="panel" style={{ overflowX: 'auto' }}>

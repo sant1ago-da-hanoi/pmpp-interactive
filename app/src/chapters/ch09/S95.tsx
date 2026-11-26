@@ -20,6 +20,7 @@ import {
   type Partitioning,
   type SegmentChoice,
 } from '../../sim/histcoarsen';
+import { useI18n } from '../../lib/i18n';
 
 const LAB = 'ch09/lab2_privatised';
 const GPU_BACKENDS = ['metal', 'cuda', 'hip'];
@@ -52,9 +53,10 @@ const linesWith = (text: string, needles: string[]) =>
   text.split('\n').flatMap((l, i) => (needles.some((n) => l.includes(n)) ? [i + 1] : []));
 
 function useListingStatus() {
+  const { locale } = useI18n();
   const { reports } = useReports();
   // The same words as the labs page's status table and reference-solution tabs.
-  return { cu: solutionTabStatus(reports, LAB, 'kernel.cu'), metal: solutionTabStatus(reports, LAB, 'kernel.metal') };
+  return { cu: solutionTabStatus(reports, LAB, 'kernel.cu', locale), metal: solutionTabStatus(reports, LAB, 'kernel.metal', locale) };
 }
 
 function Listing() {

@@ -23,6 +23,7 @@ import {
 } from '../../components/LabKit';
 import { fmt, labStatus, num, type BenchRow, type Reports, type RunResult } from '../../lib/reports';
 import { href } from '../../lib/router';
+import { useI18n } from '../../lib/i18n';
 
 // The page is built from components/LabKit.tsx; what is here is chapter 17's own content.
 // No question on this page: the lab is the exercise. The two predictions are stored, not
@@ -102,6 +103,7 @@ const COLS: Col[] = [
 
 /** CSR time over each other format's time, per matrix: the driver's own summary line, from the reports. */
 function Ratios() {
+  const { locale } = useI18n();
   const { reports, loading } = useLabs();
   if (loading) return null;
   const sets = preferredBench(reports, l1);
@@ -156,7 +158,7 @@ function Ratios() {
       </div>
       {lines.map(({ s, spread, sorted }) => (
         <p key={s.backend} data-sorted={s.backend} data-sorted-ratio={fmt(secs(spread)! / secs(sorted)!)}>
-          On {s.device} ({s.backend}), with {whose(s)}, the unchanged CSR kernel took <b>{ms(sorted)}</b> on{' '}
+          On {s.device} ({s.backend}), with {whose(s, locale)}, the unchanged CSR kernel took <b>{ms(sorted)}</b> on{' '}
           <code>spread_sorted</code> against <b>{ms(spread)}</b> on <code>spread</code>: CSR time on spread over CSR time
           on spread_sorted is {fmt(secs(spread)! / secs(sorted)!)}. Above 1, sorting the rows made CSR faster. Below 1
           is consistent with the cost of the sort: neighbouring threads now read <code>x</code> far apart.

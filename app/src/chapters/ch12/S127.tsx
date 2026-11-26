@@ -20,6 +20,7 @@ import {
   type Write,
 } from '../../sim/inplace';
 import { ScanChainScene } from './ScanChainScene';
+import { useI18n } from '../../lib/i18n';
 
 // Section 12.7, p. 300. Vendor facts: notes/today/ch12-facts.md A8, A9, A10, B5, B6, C4 and
 // ch11-facts.md C5. Every number the explorer and the puzzle show comes from sim/inplace.ts.
@@ -567,11 +568,12 @@ function OrderingPuzzle() {
 // ---------------------------------------------------------------- the page
 
 export function S127() {
+  const { locale } = useI18n();
   const q = questionsS127;
   const lab5 = useLabFile(LAB5);
   // The labs page's words (LabKit's solutionTabStatus), from this machine's runs. Lab 12.5 has no Metal files.
   const { reports } = useReports();
-  const lab5Status = solutionTabStatus(reports, 'ch12/lab5_inplace', 'kernel.cu');
+  const lab5Status = solutionTabStatus(reports, 'ch12/lab5_inplace', 'kernel.cu', locale);
   return (
     <>
       <p>

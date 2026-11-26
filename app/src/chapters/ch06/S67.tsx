@@ -23,6 +23,7 @@ import {
   type Variant,
 } from '../../sim/doublebuf';
 import { DoubleBufferScene } from './DoubleBufferScene';
+import { useI18n } from '../../lib/i18n';
 
 // labs/ch06/snippets/s67_exchange.cu, which ./verify.sh front-end-checks.
 // snippets-s67.test.ts fails if this copy drifts from the file.
@@ -334,6 +335,7 @@ function Outcomes() {
 
 // ---------------------------------------------------------------- the tiled kernel, double-buffered
 function TiledListing() {
+  const { locale } = useI18n();
   const { reports } = useReports();
   const ch5 = useLabFile('ch05/lab2_tiled/solution/kernel.cu');
   const cu = useLabFile('ch06/lab5_doublebuf/solution/kernel.cu');
@@ -343,9 +345,9 @@ function TiledListing() {
   return (
     <Code
       tabs={[
-        { label: 'Chapter 5: two barriers', code: ch5, tiers: MATMUL_TIERS, status: solutionTabStatus(reports, LAB52, 'kernel.cu') },
-        { label: 'Double-buffered (CUDA)', code: cu, tiers: MATMUL_TIERS, status: solutionTabStatus(reports, LAB65, 'kernel.cu') },
-        { label: 'Double-buffered (Metal)', code: metal, tiers: MATMUL_TIERS, status: solutionTabStatus(reports, LAB65, 'kernel.metal') },
+        { label: 'Chapter 5: two barriers', code: ch5, tiers: MATMUL_TIERS, status: solutionTabStatus(reports, LAB52, 'kernel.cu', locale) },
+        { label: 'Double-buffered (CUDA)', code: cu, tiers: MATMUL_TIERS, status: solutionTabStatus(reports, LAB65, 'kernel.cu', locale) },
+        { label: 'Double-buffered (Metal)', code: metal, tiers: MATMUL_TIERS, status: solutionTabStatus(reports, LAB65, 'kernel.metal', locale) },
       ]}
       caption={
         <>

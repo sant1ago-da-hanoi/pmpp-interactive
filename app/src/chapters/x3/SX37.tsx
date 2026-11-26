@@ -10,6 +10,7 @@ import { compare, makeCase, pairOf, ropeTables, type Pairing } from '../../sim/r
 import { functionSource } from '../../sim/toolchain';
 import { LlamaStepScene } from './LlamaStepScene';
 import { RopePairsScene } from './RopePairsScene';
+import { useI18n } from '../../lib/i18n';
 
 const X3 = 'notes/today/x3-facts.md';
 const LAB1 = 'x3/lab1_llama_pieces';
@@ -458,6 +459,7 @@ function TwoPairings() {
 
 // ---------------------------------------------------------------- the RoPE listing
 function RopeListing() {
+  const { locale } = useI18n();
   const cu = useLabFile(LAB1 + '/solution/kernel.cu');
   // The labs page's words (LabKit's solutionTabStatus), from this machine's runs.
   const { reports } = useReports();
@@ -469,8 +471,8 @@ function RopeListing() {
   return (
     <Code
       tabs={[
-        { label: 'CUDA', code: k.text, tiers: TIERS, status: solutionTabStatus(reports, LAB1, 'kernel.cu'), highlight: lines(k.text) },
-        { label: 'Metal kernel', code: mk.text, tiers: TIERS, status: solutionTabStatus(reports, LAB1, 'kernel.metal'), highlight: lines(mk.text) },
+        { label: 'CUDA', code: k.text, tiers: TIERS, status: solutionTabStatus(reports, LAB1, 'kernel.cu', locale), highlight: lines(k.text) },
+        { label: 'Metal kernel', code: mk.text, tiers: TIERS, status: solutionTabStatus(reports, LAB1, 'kernel.metal', locale), highlight: lines(mk.text) },
       ]}
       caption={
         <>

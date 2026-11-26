@@ -25,6 +25,7 @@ import {
   total,
   traffic,
 } from '../../sim/stablescan';
+import { useI18n } from '../../lib/i18n';
 
 // Section 12.5: the stable filter by scan (Figs. 12.7 and 12.8, pp. 297-298). The explorer
 // and the block stepper run on src/sim/stablescan.ts.
@@ -434,11 +435,12 @@ export const questionsS125: Record<string, Question> = {
 
 /** A lab's reference-solution status, in the labs page's words (LabKit's solutionTabStatus), from this machine's runs. */
 function useLabStatus(lab: string) {
+  const { locale } = useI18n();
   const { reports } = useReports();
   return {
-    cu: solutionTabStatus(reports, lab, 'kernel.cu'),
-    metal: solutionTabStatus(reports, lab, 'kernel.metal'),
-    mm: solutionTabStatus(reports, lab, 'launch.mm'),
+    cu: solutionTabStatus(reports, lab, 'kernel.cu', locale),
+    metal: solutionTabStatus(reports, lab, 'kernel.metal', locale),
+    mm: solutionTabStatus(reports, lab, 'launch.mm', locale),
   };
 }
 

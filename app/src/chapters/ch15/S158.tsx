@@ -33,6 +33,7 @@ import {
   type Variant,
 } from '../../sim/gemmpipe';
 import { LANES_H, Lanes, PipelineScene } from './PipelineScene';
+import { useI18n } from '../../lib/i18n';
 
 const P = 4; // threads in the stepper's block
 const NT = 4; // tiles
@@ -469,6 +470,7 @@ function Outcomes() {
 const GEMM_TIERS = { ...MATMUL_TIERS, A_s: 'shared', B_s: 'shared', C_r: 'reg', a_r: 'reg', b_r: 'reg', tile: 'reg' } as const;
 
 function PipelineListing() {
+  const { locale } = useI18n();
   const { reports } = useReports();
   const cu = useLabFile(`${LAB_DIR}/solution/kernel.cu`);
   const metal = useLabFile(`${LAB_DIR}/solution/kernel.metal`);
@@ -476,8 +478,8 @@ function PipelineListing() {
   return (
     <Code
       tabs={[
-        { label: 'CUDA', code: cu, tiers: GEMM_TIERS, status: cuStatus(reports, LAB155) },
-        { label: 'Metal', code: metal, tiers: GEMM_TIERS, status: metalStatus(reports, LAB155) },
+        { label: 'CUDA', code: cu, tiers: GEMM_TIERS, status: cuStatus(reports, LAB155, locale) },
+        { label: 'Metal', code: metal, tiers: GEMM_TIERS, status: metalStatus(reports, LAB155, locale) },
       ]}
       caption={
         <>

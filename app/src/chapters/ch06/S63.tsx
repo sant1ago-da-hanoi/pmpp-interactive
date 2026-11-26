@@ -8,6 +8,7 @@ import { href } from '../../lib/router';
 import {
   SECTORS_PER_REQUEST, bytesPerWarpLoad, instructions, misalignedChunks, plan, widestVector, type Plan, type ThreadPlan,
 } from '../../sim/vectorize';
+import { useI18n } from '../../lib/i18n';
 
 // ---------------------------------------------------------------- lab 6.2, the code this section shows and measures
 const LABS = defineLabs('ch06', [{ num: '6.2', dir: 'lab2_vector', name: 'vector loads' }] as const);
@@ -28,14 +29,15 @@ const linesWith = (text: string, word: string) =>
   text.split('\n').flatMap((l, i) => (l.includes(word) && !l.trim().startsWith('//') ? [i + 1] : []));
 
 function LabListing() {
+  const { locale } = useI18n();
   const cu = useLabFile(SOL + '/kernel.cu');
   const metal = useLabFile(SOL + '/kernel.metal');
   const mm = useLabFile(SOL + '/launch.mm');
   const { reports, loading } = useReports();
   // The same words as the labs page's status table (LabKit's solutionTabStatus).
   const reading = loading ? 'reading reports' : null;
-  const cuda = reading ?? solutionTabStatus(reports, VEC, 'kernel.cu');
-  const onMetal = reading ?? solutionTabStatus(reports, VEC, 'kernel.metal');
+  const cuda = reading ?? solutionTabStatus(reports, VEC, 'kernel.cu', locale);
+  const onMetal = reading ?? solutionTabStatus(reports, VEC, 'kernel.metal', locale);
   if (!cu || !metal || !mm) return <p className="muted">Loading lab 6.2's reference solution.</p>;
   return (
     <Code

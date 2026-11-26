@@ -4,6 +4,7 @@ import { defineLabs, preferredBench, whose } from '../../components/LabKit';
 import { useProgress } from '../../lib/progress';
 import { fmt, labStatus, num, realBackends, useReports } from '../../lib/reports';
 import { href } from '../../lib/router';
+import { useI18n } from '../../lib/i18n';
 
 // The mixed check's numbers are ours, chosen for the arithmetic; none is a device figure.
 // Host amortisation: kernels 10 ms at batch 1 and 14 ms at batch 32, a fixed 2 ms of host work per step.
@@ -185,6 +186,7 @@ const [GEMV] = defineLabs('ch22', [{ num: '22.1', dir: 'lab1_gemv', name: 'gathe
 const [M8] = defineLabs('ch22', [{ num: '22.2', dir: 'lab2_batching', name: 'batching study (M8)' }]);
 
 function OnThisMachine() {
+  const { locale } = useI18n();
   const { reports, loading } = useReports();
   if (loading) return null;
   const lines = preferredBench(reports, GEMV).flatMap((s) => {
@@ -198,7 +200,7 @@ function OnThisMachine() {
     <>
       {lines.map(({ s, ratio, splits }) => (
         <p key={s.backend} data-machine={s.backend} data-ratio={fmt(ratio)}>
-          Your own numbers, {s.device} ({s.backend}), {whose(s)}: on lab 22.1's 4096 → 16 layer at batch 1, the fastest
+          Your own numbers, {s.device} ({s.backend}), {whose(s, locale)}: on lab 22.1's 4096 → 16 layer at batch 1, the fastest
           split-K (S = {splits}) ran <b>{fmt(ratio)}</b> times as fast as gather. The{' '}
           <a href={href('ch22', 'labs')}>labs page</a> has every shape.
         </p>

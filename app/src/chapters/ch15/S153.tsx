@@ -25,6 +25,7 @@ import {
   type Ownership,
   type WarpLoad,
 } from '../../sim/gemmmap';
+import { useI18n } from '../../lib/i18n';
 
 // ---------------------------------------------------------------- the lab files this section shows
 const LABS = defineLabs('ch15', [
@@ -56,13 +57,14 @@ export function functionOf(text: string, name: string): { code: string; firstLin
 }
 
 function LabSlice({ fn, caption }: { fn: string; caption: ReactNode }) {
+  const { locale } = useI18n();
   const { reports } = useReports();
   const cu = useLabFile(SOL + 'kernel.cu');
   if (!cu) return null;
   const s = functionOf(cu, fn);
   return (
     <Code
-      tabs={[{ label: `${fn}, lab 15.1`, code: s ? s.code : cu, tiers: GEMM15_TIERS, status: cuStatus(reports, LAB1) }]}
+      tabs={[{ label: `${fn}, lab 15.1`, code: s ? s.code : cu, tiers: GEMM15_TIERS, status: cuStatus(reports, LAB1, locale) }]}
       firstLine={s ? s.firstLine : 1}
       caption={caption}
     />
@@ -70,6 +72,7 @@ function LabSlice({ fn, caption }: { fn: string; caption: ReactNode }) {
 }
 
 function Listing() {
+  const { locale } = useI18n();
   const { reports } = useReports();
   const cu = useLabFile(SOL + 'kernel.cu');
   const metal = useLabFile(SOL + 'kernel.metal');
@@ -78,9 +81,9 @@ function Listing() {
   return (
     <Code
       tabs={[
-        { label: 'CUDA', code: cu, tiers: GEMM15_TIERS, status: cuStatus(reports, LAB1) },
-        { label: 'Metal kernel', code: metal, tiers: GEMM15_TIERS, status: metalStatus(reports, LAB1) },
-        { label: 'Metal host', code: mm, tiers: {}, status: metalStatus(reports, LAB1) },
+        { label: 'CUDA', code: cu, tiers: GEMM15_TIERS, status: cuStatus(reports, LAB1, locale) },
+        { label: 'Metal kernel', code: metal, tiers: GEMM15_TIERS, status: metalStatus(reports, LAB1, locale) },
+        { label: 'Metal host', code: mm, tiers: {}, status: metalStatus(reports, LAB1, locale) },
       ]}
       caption={
         <>

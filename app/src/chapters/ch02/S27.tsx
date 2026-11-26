@@ -35,6 +35,7 @@ import {
   type Chip,
   type Qualifiers,
 } from '../../sim/toolchain';
+import { useI18n } from '../../lib/i18n';
 
 const LAB = 'ch02/lab1_vecadd';
 // The shared helper is shown from lab 2.3's reference solution. S27.snippets.test.ts
@@ -407,8 +408,9 @@ function pickFunctions(src: string | null, names: readonly string[]): string | n
 
 // The same words as the labs page (LabKit's solutionTabStatus), from this machine's runs.
 function useLabStatus(lab: string) {
+  const { locale } = useI18n();
   const { reports } = useReports();
-  return { cu: solutionTabStatus(reports, lab, 'kernel.cu'), metal: solutionTabStatus(reports, lab, 'kernel.metal') };
+  return { cu: solutionTabStatus(reports, lab, 'kernel.cu', locale), metal: solutionTabStatus(reports, lab, 'kernel.metal', locale) };
 }
 
 function HelperListing() {
@@ -439,11 +441,12 @@ function HelperListing() {
 }
 
 function PipelineListing() {
+  const { locale } = useI18n();
   const mm = useLabFile(LAB + '/solution/launch.mm');
   const { reports } = useReports();
   const f = mm ? functionSource(mm, 'makeVecAddPipeline') : null;
   if (!f) return <p className="muted">Loading the Metal host code from <code>labs/{LAB}/solution/launch.mm</code>.</p>;
-  const status = solutionTabStatus(reports, LAB, 'launch.mm');
+  const status = solutionTabStatus(reports, LAB, 'launch.mm', locale);
   return (
     <Code
       tabs={[{ label: 'Metal host', code: f.text, status }]}

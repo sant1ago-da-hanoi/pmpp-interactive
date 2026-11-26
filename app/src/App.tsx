@@ -31,7 +31,7 @@ function useTheme(): [string, () => void] {
 }
 
 function Rail({ chapter, section }: { chapter?: Chapter | null; section?: string }) {
-  const { t, toggleLocale } = useI18n();
+  const { locale, t, toggleLocale } = useI18n();
   const { progress, saveError } = useProgress();
   const [theme, toggle] = useTheme();
   const due = dueCount(progress.review);
@@ -51,7 +51,7 @@ function Rail({ chapter, section }: { chapter?: Chapter | null; section?: string
             {chapter.sections.map((s) => (
               <a key={s.id} href={href(chapter.id, s.id)} aria-current={s.id === section ? 'page' : undefined}>
                 <span className="num">{s.num}</span>
-                <span>{s.title}</span>
+                <span>{locale === 'vi' && s.titleVi ? s.titleVi : s.title}</span>
                 <span className="tick" aria-label={progress.sections[`${chapter.id}/${s.id}`]?.done ? t.app.doneAriaLabel : undefined}>
                   {progress.sections[`${chapter.id}/${s.id}`]?.done ? '✓' : ''}
                 </span>
@@ -91,21 +91,22 @@ function Rail({ chapter, section }: { chapter?: Chapter | null; section?: string
 }
 
 function SectionPage({ chapter, section }: { chapter: Chapter; section: Section }) {
-  const { t } = useI18n();
+  const { locale, t } = useI18n();
   const { progress, visit, setDone, loaded } = useProgress();
   const key = `${chapter.id}/${section.id}`;
   const [mod, setMod] = useState<SectionModule | null>(null);
   const [failed, setFailed] = useState<string | null>(null);
   useEffect(() => {
     let live = true;
-    section.load().then(
+    const loader = locale === 'vi' && section.loadVi ? () => section.loadVi!().catch(() => section.load()) : section.load;
+    loader().then(
       (m) => live && setMod(m),
       (e) => live && setFailed(String(e?.message ?? e)),
     );
     return () => {
       live = false;
     };
-  }, [section]);
+  }, [section, locale]);
   useEffect(() => {
     if (loaded) visit(key);
   }, [key, loaded, visit]);
@@ -113,33 +114,35 @@ function SectionPage({ chapter, section }: { chapter: Chapter; section: Section 
   const prev = chapter.sections[i - 1];
   const next = chapter.sections[i + 1];
   const done = !!progress.sections[key]?.done;
+  const sectionTitle = (s: Section) => (locale === 'vi' && s.titleVi ? s.titleVi : s.title);
+  const lede = locale === 'vi' && section.ledeVi ? section.ledeVi : section.lede;
   return (
     // data-ready tells the browser checks that the section's own code has rendered.
     <article className="page" data-ready={mod ? '' : undefined}>
       <header className="section-head">
         <span className="num">{section.num}</span>
-        <h1>{section.title}</h1>
-        <p className="lede">{section.lede}</p>
+        <h1>{sectionTitle(section)}</h1>
+        <p className="lede">{lede}</p>
       </header>
       <div className="prose">
         {mod ? <mod.Component /> : failed ? <p className="t-fail">{t.app.sectionFailed(failed)}</p> : <p className="muted">{t.common.loading}</p>}
       </div>
       <footer className="row ui" style={{ marginTop: '3rem', justifyContent: 'space-between', maxWidth: 'var(--measure)' }}>
-        <span>{prev ? <a href={href(chapter.id, prev.id)}>{t.app.back(prev.title)}</a> : null}</span>
+        <span>{prev ? <a href={href(chapter.id, prev.id)}>{t.app.back(sectionTitle(prev))}</a> : null}</span>
         <button className={done ? 'quiet' : 'primary'} onClick={() => setDone(key, !done)}>
           {done ? t.app.markedDoneUndo : t.app.markSectionDone}
         </button>
-        <span>{next ? <a href={href(chapter.id, next.id)}>{t.app.next(next.title)}</a> : null}</span>
+        <span>{next ? <a href={href(chapter.id, next.id)}>{t.app.next(sectionTitle(next))}</a> : null}</span>
       </footer>
     </article>
   );
 }
 
 export function App() {
-  const { t } = useI18n();
+  const { locale, t } = useI18n();
   const route = useRoute();
   const isStudy = !route[0] || route[0] === 'review';
-  const chapter = useChapter(isStudy ? undefined : route[0]);
+  const chapter = useChapter(isStudy ? undefined : route[0], locale);
   const section = chapter ? (chapter.sections.find((s) => s.id === route[1]) ?? chapter.sections[0]) : undefined;
   return (
     <div className="frame">

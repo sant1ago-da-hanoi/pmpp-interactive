@@ -10,6 +10,7 @@ import {
   occupancyLimits, suggest, type LaunchLimits, type RuleStatus,
 } from '../../sim/launchconfig';
 import { isSynthetic, occupancy, pct } from '../../sim/occupancy';
+import { useI18n } from '../../lib/i18n';
 
 const count = (v: number) => v.toLocaleString('en-US');
 const plural = (v: number, one: string, many = one + 's') => `${count(v)} ${v === 1 ? one : many}`;
@@ -683,12 +684,13 @@ export function metalQueryExcerpt(file: string): string {
 }
 
 function MetalQuery() {
+  const { locale } = useI18n();
   const file = useLabFile(LAB1 + '/solution/launch.mm');
   const { reports } = useReports();
   if (!file) return null;
   return (
     <Code
-      tabs={[{ label: 'Metal host', code: metalQueryExcerpt(file), status: solutionTabStatus(reports, LAB1, 'launch.mm') }]}
+      tabs={[{ label: 'Metal host', code: metalQueryExcerpt(file), status: solutionTabStatus(reports, LAB1, 'launch.mm', locale) }]}
       caption={
         <>
           From lab 4.1's reference solution, <code>labs/{LAB1}/solution/launch.mm</code>. The status beside the tab is

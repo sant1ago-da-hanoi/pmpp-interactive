@@ -22,6 +22,7 @@ import {
   type PresetId,
   type WarpState,
 } from '../../sim/histruns';
+import { useI18n } from '../../lib/i18n';
 
 const LAB = 'ch09/lab2_privatised';
 const int = (v: number) => v.toLocaleString('en-US');
@@ -61,11 +62,12 @@ const linesWith = (text: string, needles: string[]) =>
   text.split('\n').flatMap((l, i) => (needles.some((n) => l.includes(n)) ? [i + 1] : []));
 
 function Listing() {
+  const { locale } = useI18n();
   const cu = useLabFile(LAB + '/solution/kernel.cu');
   const msl = useLabFile(LAB + '/solution/kernel.metal');
   const { reports } = useReports();
   // The same words as the labs page's status table and reference-solution tabs.
-  const st = (f: 'kernel.cu' | 'kernel.metal') => solutionTabStatus(reports, LAB, f);
+  const st = (f: 'kernel.cu' | 'kernel.metal') => solutionTabStatus(reports, LAB, f, locale);
   const k = region(cu, 'runs');
   const m = region(msl, 'runs');
   if (!k)

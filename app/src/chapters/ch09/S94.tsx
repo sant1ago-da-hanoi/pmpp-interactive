@@ -36,6 +36,7 @@ import {
 import { functionSource, type FunctionSource } from '../../sim/toolchain';
 import type { ImageKind } from '../../sim/histogram';
 import { PrivatiseScene } from './PrivatiseScene';
+import { useI18n } from '../../lib/i18n';
 
 const LAB1 = 'ch09/lab1_racehunt';
 const LAB2 = 'ch09/lab2_privatised';
@@ -79,9 +80,10 @@ function useBudgets() {
 }
 
 function useListingStatus(lab: string) {
+  const { locale } = useI18n();
   const { reports } = useReports();
   // The same words as the labs page's status table and reference-solution tabs.
-  return { cu: solutionTabStatus(reports, lab, 'kernel.cu'), metal: solutionTabStatus(reports, lab, 'kernel.metal') };
+  return { cu: solutionTabStatus(reports, lab, 'kernel.cu', locale), metal: solutionTabStatus(reports, lab, 'kernel.metal', locale) };
 }
 
 // ---------------------------------------------------------------- listings from the labs

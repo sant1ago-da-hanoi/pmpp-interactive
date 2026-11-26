@@ -24,6 +24,7 @@ import { fmt, num, type BenchRow, type Reports } from '../../lib/reports';
 import { href } from '../../lib/router';
 import { paradigm, parseParadigmRow } from '../../sim/umparadigm';
 import { ratioFromProbe } from '../../sim/zerocopy';
+import { useI18n } from '../../lib/i18n';
 
 // The page is built from components/LabKit.tsx; what is here is appendix C's own content.
 // The lab runner resolves "N.M" to chNN/labM_ only, so the lab's number on this page is
@@ -124,6 +125,7 @@ const metalRatio = (reports: Reports) =>
 
 // ---------------------------------------------------------------- what the benchmark printed first
 function Instruments() {
+  const { locale } = useI18n();
   const { reports, loading, reload } = useLabs();
   const sets = preferredBench(reports, l1);
   const lines = sets.flatMap((s) => {
@@ -204,7 +206,7 @@ function Instruments() {
       )}
       {sets.length ? (
         <p className="muted" style={{ margin: '0.6rem 0 0' }}>
-          Read from {sets.map((s) => `${s.backend}: ${whose(s)}`).join('; ')}. These rows come from the driver and{' '}
+          Read from {sets.map((s) => `${s.backend}: ${whose(s, locale)}`).join('; ')}. These rows come from the driver and{' '}
           <code>shared/probe.cu</code>, not from your feed functions.
         </p>
       ) : null}

@@ -15,6 +15,7 @@ import {
   type Phase,
 } from '../../sim/coarsescan';
 import { functionSource } from '../../sim/toolchain';
+import { useI18n } from '../../lib/i18n';
 
 const STATUS = {
   printed: 'front-end-checked; emulator-checked (N a multiple of the block segment); unverified on CUDA hardware; as printed',
@@ -278,12 +279,13 @@ function BankMap() {
 
 // ---------------------------------------------------------------- code
 function RegTiledListing() {
+  const { locale } = useI18n();
   const printed = useLabFile(FILES['fig11.13']);
   const cu = useLabFile(LAB + '/solution/kernel.cu');
   const metal = useLabFile(LAB + '/solution/kernel.metal');
   // The labs page's words (LabKit's solutionTabStatus), from this machine's runs.
   const { reports } = useReports();
-  const labStatus = { cu: solutionTabStatus(reports, 'ch11/lab2_coarsened', 'kernel.cu'), metal: solutionTabStatus(reports, 'ch11/lab2_coarsened', 'kernel.metal') };
+  const labStatus = { cu: solutionTabStatus(reports, 'ch11/lab2_coarsened', 'kernel.cu', locale), metal: solutionTabStatus(reports, 'ch11/lab2_coarsened', 'kernel.metal', locale) };
   if (missing(printed)) return null;
   const k = functionSource(printed!, 'scan_kernel');
   if (!k) return null;

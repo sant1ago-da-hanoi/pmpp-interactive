@@ -31,6 +31,7 @@ import {
   type Program,
   type State,
 } from '../../sim/offload';
+import { useI18n } from '../../lib/i18n';
 
 const STUB = 'ch02/snippets/vecadd_stub.cu';
 const SOLUTION = 'ch02/lab1_vecadd/solution/kernel.cu';
@@ -830,6 +831,7 @@ function TwoListings({ onDone }: { onDone: () => void }) {
 }
 
 function HuntThenMacro() {
+  const { locale } = useI18n();
   const [show, setShow] = useState(false);
   const file = useLabFile(SOLUTION);
   const { reports } = useReports();
@@ -842,7 +844,7 @@ function HuntThenMacro() {
           tabs={[{
             label: 'CHECK, from lab 2.1',
             code: macro?.code ?? file ?? '// loading labs/' + SOLUTION,
-            status: solutionTabStatus(reports, 'ch02/lab1_vecadd', 'kernel.cu'),
+            status: solutionTabStatus(reports, 'ch02/lab1_vecadd', 'kernel.cu', locale),
           }]}
           firstLine={macro?.firstLine ?? 1}
           caption={

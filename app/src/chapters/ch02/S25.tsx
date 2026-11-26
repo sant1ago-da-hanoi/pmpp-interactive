@@ -24,6 +24,7 @@ import {
 } from '../../sim/grid1d';
 import { CALLERS, EXECUTOR_TEXT, QUALIFIER_TEXT, functionSource, legalCall, type Qualifiers } from '../../sim/toolchain';
 import { LoopToGridScene } from './LoopToGridScene';
+import { useI18n } from '../../lib/i18n';
 
 const LAB = 'ch02/lab1_vecadd';
 const KERNEL_TIERS: Record<string, Tier> = { A: 'global', B: 'global', C: 'global', i: 'reg' };
@@ -55,8 +56,9 @@ const AMD_GUARD = `if(index < size)`;
 // ---------------------------------------------------------------- the kernel, from the lab
 // The same words as the labs page (LabKit's solutionTabStatus), from this machine's runs.
 function useKernelStatus() {
+  const { locale } = useI18n();
   const { reports } = useReports();
-  return { cu: solutionTabStatus(reports, LAB, 'kernel.cu'), metal: solutionTabStatus(reports, LAB, 'kernel.metal') };
+  return { cu: solutionTabStatus(reports, LAB, 'kernel.cu', locale), metal: solutionTabStatus(reports, LAB, 'kernel.metal', locale) };
 }
 
 function KernelListing({ cu, metal }: { cu: string | null; metal: string | null }) {

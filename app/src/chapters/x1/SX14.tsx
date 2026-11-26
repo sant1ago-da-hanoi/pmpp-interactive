@@ -23,6 +23,7 @@ import {
 } from '../../sim/topkselect';
 import { VOCAB_PRESETS } from '../../sim/nucleus';
 import { RadixSelectScene } from './RadixSelectScene';
+import { useI18n } from '../../lib/i18n';
 
 // Section X1.4: top-k as an MSD radix select. Everything the interactives show is computed by
 // src/sim/topkselect.ts (selectTrace, costs, measuredPairs), pinned in topkselect.test.ts.
@@ -682,8 +683,9 @@ export const questionsSX14: Record<string, Question> = {
 
 // ---------------------------------------------------------------- the section
 export function SX14() {
+  const { locale } = useI18n();
   const { reports } = useReports();
-  const st = { cu: solutionTabStatus(reports, LAB_X11, 'kernel.cu'), metal: solutionTabStatus(reports, LAB_X11, 'kernel.metal') };
+  const st = { cu: solutionTabStatus(reports, LAB_X11, 'kernel.cu', locale), metal: solutionTabStatus(reports, LAB_X11, 'kernel.metal', locale) };
   const cu = loaded(useLabFile('x1/lab1_topk/solution/kernel.cu'));
   const metal = loaded(useLabFile('x1/lab1_topk/solution/kernel.metal'));
   return (

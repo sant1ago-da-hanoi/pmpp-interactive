@@ -46,6 +46,7 @@ import {
   type RunLike,
 } from '../../sim/scantraffic';
 import { LookbackScene } from './LookbackScene';
+import { useI18n } from '../../lib/i18n';
 
 // Section 11.9: stitching block scans into a global scan. Bytes per element of each design
 // (src/sim/scantraffic.ts), blocks waiting for blocks and the flag protocol
@@ -697,6 +698,7 @@ const linesWith = (text: string, needles: string[]) =>
   text.split('\n').flatMap((l, i) => (needles.some((n) => l.includes(n)) ? [i + 1] : []));
 
 function SinglePassListing() {
+  const { locale } = useI18n();
   const cu = useLabFile(LAB5_FILE);
   // The labs page's words (LabKit's solutionTabStatus), from this machine's runs. Lab 11.5 has no Metal files.
   const { reports } = useReports();
@@ -714,7 +716,7 @@ function SinglePassListing() {
           label: 'CUDA (lab 11.5)',
           code: cu,
           tiers: SCAN_TIERS,
-          status: solutionTabStatus(reports, 'ch11/lab5_singlepass', 'kernel.cu'),
+          status: solutionTabStatus(reports, 'ch11/lab5_singlepass', 'kernel.cu', locale),
           highlight: linesWith(cu, ['memory_order_acquire', 'memory_order_release', 'blockCounter']),
         },
       ]}

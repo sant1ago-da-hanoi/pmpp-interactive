@@ -33,6 +33,7 @@ import {
 } from '../../sim/convtile';
 import { SCHEDULE_LABEL, type Schedule } from '../../sim/tiled';
 import { LoadWaitComputeScene } from './LoadWaitComputeScene';
+import { useI18n } from '../../lib/i18n';
 
 // ---------------------------------------------------------------- shared bits
 
@@ -1008,18 +1009,19 @@ function MeasuredAgainstFormula({ predicted }: { predicted: number }) {
 // ---------------------------------------------------------------- the lab listing
 
 function HaloListing() {
+  const { locale } = useI18n();
   const { reports } = useReports();
   const cu = labPart(useLabFile('ch07/lab2_tiledconv/solution/kernel.cu'), 'halo');
   const metal = labPart(useLabFile('ch07/lab2_tiledconv/solution/kernel.metal'), 'halo');
   if (!cu || !metal) return null;
   const lab = 'ch07/lab2_tiledconv';
   // The labs page's words (LabKit's solutionTabStatus), so a failed run reads as failed here too.
-  const cuStatus = solutionTabStatus(reports, lab, 'kernel.cu');
+  const cuStatus = solutionTabStatus(reports, lab, 'kernel.cu', locale);
   return (
     <Code
       tabs={[
         { label: 'CUDA', code: cu, tiers: CONV_TIERS, status: cuStatus },
-        { label: 'Metal kernel', code: metal, tiers: CONV_TIERS, status: solutionTabStatus(reports, lab, 'kernel.metal') },
+        { label: 'Metal kernel', code: metal, tiers: CONV_TIERS, status: solutionTabStatus(reports, lab, 'kernel.metal', locale) },
       ]}
       caption={
         <>

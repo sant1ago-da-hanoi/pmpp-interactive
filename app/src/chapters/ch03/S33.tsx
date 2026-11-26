@@ -36,6 +36,7 @@ import {
   type Pos,
 } from '../../sim/blur';
 import { Hatch, InPlaceBlurScene, PixelCells, grey, show, type CellLook } from './InPlaceBlurScene';
+import { useI18n } from '../../lib/i18n';
 
 // The kernel of Fig. 3.8 as this course compiles it: labs/ch03/snippets/blur_kernel.cu.
 // S33.snippets.test.ts fails if this copy and that file drift apart. Shown with the
@@ -781,13 +782,14 @@ const missing = (s: string | null) => !s || s.startsWith('// could not load');
 const LAB2 = 'ch03/lab2_blur';
 
 export function S33() {
+  const { locale } = useI18n();
   const cu = useLabFile(LAB2 + '/solution/kernel.cu');
   const metal = useLabFile(LAB2 + '/solution/kernel.metal');
   const mm = useLabFile(LAB2 + '/solution/launch.mm');
   // The status of the reference solution in the labs page's words, read from this machine's lab runs.
   const { reports } = useReports();
-  const cudaStatus = solutionTabStatus(reports, LAB2, 'kernel.cu');
-  const metalStatus = solutionTabStatus(reports, LAB2, 'kernel.metal');
+  const cudaStatus = solutionTabStatus(reports, LAB2, 'kernel.cu', locale);
+  const metalStatus = solutionTabStatus(reports, LAB2, 'kernel.metal', locale);
   return (
     <>
       <p>

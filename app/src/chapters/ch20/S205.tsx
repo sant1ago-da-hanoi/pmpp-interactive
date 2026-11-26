@@ -13,6 +13,7 @@ import { FlashLanes } from './FlashLanes';
 import { FlashOutcomes, FlashStepper } from './FlashStepper';
 import { OnlineMergeScene } from './OnlineMergeScene';
 import { OnlineSoftmaxStepper } from './OnlineSoftmaxStepper';
+import { useI18n, type Locale } from '../../lib/i18n';
 
 // Section 20.5, Flash attention (book pp. 492–504). The chapter's centre: the online
 // softmax merge, the single-kernel forward pass, its storage plan and lane layout, the
@@ -23,8 +24,8 @@ import { OnlineSoftmaxStepper } from './OnlineSoftmaxStepper';
 const [LAB2] = defineLabs('ch20', [{ num: '20.2', dir: 'lab2_flash', name: 'flash attention forward' }]);
 
 /** The listing's status lines from this machine's runs, in the labs page's words. */
-function statuses(reports: Reports) {
-  return { cu: solutionTabStatus(reports, LAB2, 'kernel.cu'), metal: solutionTabStatus(reports, LAB2, 'kernel.metal') };
+function statuses(reports: Reports, locale: Locale = 'en') {
+  return { cu: solutionTabStatus(reports, LAB2, 'kernel.cu', locale), metal: solutionTabStatus(reports, LAB2, 'kernel.metal', locale) };
 }
 
 const FLASH_TIERS: Record<string, Tier> = {
@@ -310,8 +311,9 @@ export const questionsS205: Record<string, Question> = {
 const Q = questionsS205;
 
 export function S205() {
+  const { locale } = useI18n();
   const { reports } = useReports();
-  const st = statuses(reports);
+  const st = statuses(reports, locale);
   const cu = useLabFile('ch20/lab2_flash/solution/kernel.cu');
   const metal = useLabFile('ch20/lab2_flash/solution/kernel.metal');
   const mm = useLabFile('ch20/lab2_flash/solution/launch.mm');

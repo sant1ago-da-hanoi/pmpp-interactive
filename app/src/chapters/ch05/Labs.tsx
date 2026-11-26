@@ -1,4 +1,5 @@
 import type { Question } from '../../components/Ask';
+import type { Locale } from '../../lib/i18n';
 import { Beyond, Source } from '../../components/notes';
 import { MATMUL_TIERS } from '../../components/Code';
 import {
@@ -65,7 +66,7 @@ const batchGain = (reports: Reports) =>
 /** Lab 5.5: the run-time-tile kernel over lab 5.2's compile-time one, both at T = 16, at the
  *  matrix width lab 5.2's benchmark chose (lab 5.5's times every width that one can choose),
  *  same backend. A lab 5.5 report without that width gives no comparison. */
-const dynamicCost = (reports: Reports) => {
+const dynamicCost = (reports: Reports, locale: Locale) => {
   const fixed = preferredBench(reports, l2);
   return measure(reports, l5, (s) => {
     const f = fixed.find((x) => x.backend === s.backend);
@@ -77,11 +78,11 @@ const dynamicCost = (reports: Reports) => {
     const b = num(fix.gflops);
     if (!dyn || !a || !b) return null;
     return {
-      whose: `lab 5.5 from ${whose(s)}, lab 5.2 from ${whose(f)}`,
+      whose: `lab 5.5 from ${whose(s, locale)}, lab 5.2 from ${whose(f, locale)}`,
       value: a / b,
       detail: `${fmt(a)} GFLOP/s against ${fmt(b)} GFLOP/s, both at width ${String(width)}`,
     };
-  });
+  }, locale);
 };
 
 // ---------------------------------------------------------------- the page
