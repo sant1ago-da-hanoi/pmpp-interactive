@@ -38,13 +38,13 @@ python3 labs/pmpp.py run 5.2 --solution
 Cần CMake 3.21 trở lên, trình biên dịch C++17 và Python 3. Backend được dò tự động; backend
 thiếu thì bỏ qua:
 
-| Backend | Cần | Trạng thái lời giải tham chiếu |
-|---|---|---|
-| `metal` | macOS có Xcode command line tools | verified on Metal (máy Mac của tác giả), trừ lab 11.5, 12.5 và 18.1 phần B, chỉ chạy được trên họ CUDA |
-| `emu` | không cần gì thêm | emulator-checked: emulator CPU cho tập con của CUDA, chỉ kiểm tra logic. Giới hạn thời gian test là 2400 s (900 s trên thiết bị; `PMPP_TEST_TIMEOUT` để ghi đè), vì bộ test của lab X3.2 chạy lần lượt từng thread |
-| `race` | không cần gì thêm | cùng emulator đó nhưng chạy thread đồng thời dưới ThreadSanitizer, dành cho lab tự chọn tham gia |
-| `cuda` | NVIDIA CUDA toolkit | front-end-checked; **chưa từng chạy trên thiết bị CUDA** |
-| `hip` | AMD ROCm (`ROCM_PATH` hoặc `/opt/rocm`) | **unverified**, chưa từng biên dịch |
+| Backend | Cần                                     | Trạng thái lời giải tham chiếu                                                                                                                                                                                     |
+|---------|-----------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `metal` | macOS có Xcode command line tools       | verified on Metal (máy Mac của tác giả), trừ lab 11.5, 12.5 và 18.1 phần B, chỉ chạy được trên họ CUDA                                                                                                             |
+| `emu`   | không cần gì thêm                       | emulator-checked: emulator CPU cho tập con của CUDA, chỉ kiểm tra logic. Giới hạn thời gian test là 2400 s (900 s trên thiết bị; `PMPP_TEST_TIMEOUT` để ghi đè), vì bộ test của lab X3.2 chạy lần lượt từng thread |
+| `race`  | không cần gì thêm                       | cùng emulator đó nhưng chạy thread đồng thời dưới ThreadSanitizer, dành cho lab tự chọn tham gia                                                                                                                   |
+| `cuda`  | NVIDIA CUDA toolkit                     | front-end-checked; **chưa từng chạy trên thiết bị CUDA**                                                                                                                                                           |
+| `hip`   | AMD ROCm (`ROCM_PATH` hoặc `/opt/rocm`) | **unverified**, chưa từng biên dịch                                                                                                                                                                                |
 
 Nếu có máy CUDA hoặc ROCm: chạy `./verify.sh` ở đó và giữ báo cáo nó ghi ra. Báo cáo ghi lỗi
 build và lỗi test đủ chi tiết để sửa.
