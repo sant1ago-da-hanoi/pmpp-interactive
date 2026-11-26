@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useI18n } from '../lib/i18n';
 
 // A narrated animation: a sequence of beats, each a narration clip plus a drawing
 // that is a pure function of how far through the beat we are. Picture and sound
@@ -43,6 +44,7 @@ export function Scene({
    */
   narrow?: boolean;
 }) {
+  const { t: i18n } = useI18n();
   const base = `/content/${chapter}/narration/`;
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const [scripts, setScripts] = useState<Record<string, string>>({});
@@ -160,7 +162,10 @@ export function Scene({
       <header>
         <h4>{title}</h4>
         <span className="task">
-          {beats.length} parts, about {Math.round(beats.reduce((s, b) => s + (manifest?.clips[b.clip]?.duration ?? estimate(scripts[b.clip] ?? '')), 0))} seconds
+          {i18n.scene.partsSummary(
+            beats.length,
+            Math.round(beats.reduce((s, b) => s + (manifest?.clips[b.clip]?.duration ?? estimate(scripts[b.clip] ?? '')), 0)),
+          )}
         </span>
       </header>
       <div className="body">
@@ -172,9 +177,9 @@ export function Scene({
         ) : null}
         <div className="row">
           <button className="primary" onClick={() => { if (finished) go(0); setPlaying(!playing); }}>
-            {playing ? 'Pause' : finished ? 'Play again' : t > 0 || i > 0 ? 'Resume' : 'Play'}
+            {playing ? i18n.scene.pause : finished ? i18n.scene.playAgain : t > 0 || i > 0 ? i18n.scene.resume : i18n.scene.play}
           </button>
-          <span className="seg" role="group" aria-label="Parts">
+          <span className="seg" role="group" aria-label={i18n.scene.partsAria}>
             {beats.map((b, k) => (
               <button key={b.clip} aria-pressed={k === i} onClick={() => go(k)} title={b.label}>
                 {k + 1}. {b.label}
@@ -182,14 +187,14 @@ export function Scene({
             ))}
           </span>
           <label className="check">
-            <input type="checkbox" checked={sound} onChange={(e) => setSound(e.target.checked)} /> sound
+            <input type="checkbox" checked={sound} onChange={(e) => setSound(e.target.checked)} /> {i18n.scene.sound}
           </label>
           <label className="check">
-            <input type="checkbox" checked={captions} onChange={(e) => toggleCaptions(e.target.checked)} /> captions
+            <input type="checkbox" checked={captions} onChange={(e) => toggleCaptions(e.target.checked)} /> {i18n.scene.captions}
           </label>
         </div>
         <input
-          type="range" min="0" max="1000" value={Math.round(p * 1000)} aria-label="Position in this part"
+          type="range" min="0" max="1000" value={Math.round(p * 1000)} aria-label={i18n.scene.positionAria}
           style={{ width: '100%', marginTop: '0.6rem' }}
           onChange={(e) => {
             const nt = (Number(e.target.value) / 1000) * dur;
@@ -213,10 +218,10 @@ export function Scene({
       </div>
       <footer>
         {manifest === null
-          ? 'No narration manifest found; running silently on estimated timings.'
+          ? i18n.scene.noManifest
           : hasAudio
-            ? `Narration generated with ${manifest.model}. Turn on captions to read the script as it is spoken.`
-            : 'This part has no audio yet, so its script is shown as a caption and it runs on an estimated timing.'}
+            ? i18n.scene.generatedWith(manifest.model)
+            : i18n.scene.noAudioYet}
       </footer>
     </section>
   );

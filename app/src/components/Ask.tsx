@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react';
+import { useI18n } from '../lib/i18n';
 import { useProgress } from '../lib/progress';
 
 // Questions. Each has a stable id; the first answer is stored in the progress
@@ -59,7 +60,7 @@ export const numericOk = (q: NumericQ, v: number) =>
 
 export function Ask({
   q,
-  label = 'Check your reasoning',
+  label,
   review = false,
   onResult,
 }: {
@@ -69,6 +70,7 @@ export function Ask({
   review?: boolean;
   onResult?: (correct: boolean) => void;
 }) {
+  const { t } = useI18n();
   const { progress, answer, recordReview } = useProgress();
   const prior = review ? undefined : progress.answers[q.id];
   const [pick, setPick] = useState<number | null>(
@@ -98,7 +100,7 @@ export function Ask({
 
   return (
     <div className="q" data-question={q.id} data-question-kind={q.kind}>
-      <div className="kind">{label}</div>
+      <div className="kind">{label ?? t.ask.defaultLabel}</div>
       <div className="prompt">{q.prompt}</div>
       {q.kind === 'choice' ? (
         <div className="opts" role="radiogroup">
@@ -130,7 +132,7 @@ export function Ask({
             type="number"
             step="any"
             value={text}
-            aria-label="your answer"
+            aria-label={t.ask.yourAnswerAria}
             onChange={(e) => {
               setText(e.target.value);
               setChecked(false);
@@ -141,15 +143,15 @@ export function Ask({
         </div>
       )}
       <button className="primary" onClick={check} disabled={value == null}>
-        Check
+        {t.ask.check}
       </button>
       {checked ? (
         <div className={'verdict ' + (correct ? 'right' : 'wrong')}>
           <p>
-            <b>{correct ? 'Correct.' : q.kind === 'numeric' ? `Not quite. The answer is ${q.answer}${q.unit ? ' ' + q.unit : ''}.` : 'Not quite.'}</b>
+            <b>{correct ? t.ask.correct : q.kind === 'numeric' ? t.ask.notQuiteNumeric(q.answer, q.unit) : t.ask.notQuite}</b>
           </p>
           {q.explain ? <div>{q.explain}</div> : null}
-          {q.source ? <p className="muted">Source: {q.source}</p> : null}
+          {q.source ? <p className="muted">{t.ask.source(q.source)}</p> : null}
         </div>
       ) : null}
     </div>
@@ -194,6 +196,7 @@ export function Predict({
   options?: ReactNode[];
   children: (committed: number, option?: ReactNode) => ReactNode;
 }) {
+  const { t } = useI18n();
   const { progress, answer } = useProgress();
   const [text, setText] = useState('');
   const [pick, setPick] = useState<number | null>(null);
@@ -208,7 +211,7 @@ export function Predict({
   };
   return (
     <div className="q" data-question={id} data-question-kind={options ? 'predict-choice' : 'predict'}>
-      <div className="kind">Predict first</div>
+      <div className="kind">{t.ask.predictFirst}</div>
       <div className="prompt">{prompt}</div>
       {committed == null ? (
         options ? (
@@ -222,7 +225,7 @@ export function Predict({
               ))}
             </div>
             <button className="primary" onClick={commit} disabled={pick == null}>
-              Commit prediction
+              {t.ask.commitPrediction}
             </button>
           </>
         ) : (
@@ -231,13 +234,13 @@ export function Predict({
               type="number"
               step="any"
               value={text}
-              aria-label="your prediction"
+              aria-label={t.ask.yourPredictionAria}
               onChange={(e) => setText(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && commit()}
             />
             {unit ? <span className="ui muted">{unit}</span> : null}
             <button className="primary" onClick={commit} disabled={text.trim() === ''}>
-              Commit prediction
+              {t.ask.commitPrediction}
             </button>
           </div>
         )
@@ -246,12 +249,11 @@ export function Predict({
           <p>
             <b>
               {options ? (
-                <>You predicted: {options[committed]}</>
-              ) : (
                 <>
-                  You predicted {committed}
-                  {unit ? ' ' + unit : ''}.
+                  {t.ask.youPredictedChoice} {options[committed]}
                 </>
+              ) : (
+                t.ask.youPredictedNum(committed, unit)
               )}
             </b>
           </p>
