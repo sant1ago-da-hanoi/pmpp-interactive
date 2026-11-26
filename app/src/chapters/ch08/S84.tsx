@@ -44,6 +44,7 @@ import {
   type Lane,
   type WarpConfig,
 } from '../../sim/stencilwarp';
+import { useI18n } from '../../lib/i18n';
 
 // Page 8.4: book §§8.2 to 8.4 (pp. 187–193). The basic kernel and its FLOP/B, why tiling
 // buys less for a stencil than for a convolution, the cube-tiled kernel, its budget, and
@@ -315,8 +316,9 @@ function CubeCaption({ cu }: { cu: string }) {
 
 /** Status of the lab's reference solution, in the labs page's words (LabKit's solutionTabStatus). */
 function useLabStatus() {
+  const { locale } = useI18n();
   const { reports } = useReports();
-  return { cu: solutionTabStatus(reports, LAB, 'kernel.cu'), metal: solutionTabStatus(reports, LAB, 'kernel.metal') };
+  return { cu: solutionTabStatus(reports, LAB, 'kernel.cu', locale), metal: solutionTabStatus(reports, LAB, 'kernel.metal', locale) };
 }
 
 function LabListing({

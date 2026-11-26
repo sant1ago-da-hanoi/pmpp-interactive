@@ -27,6 +27,7 @@ import {
   type Width,
 } from '../../sim/warpvote';
 import { OneVoteScene } from './OneVoteScene';
+import { useI18n } from '../../lib/i18n';
 
 // Section 12.3, Coalescing atomic operations with warp-level primitives (pp. 291-295).
 // Listings: Figs. 12.3 and 12.4 from labs/ch12/snippets/ (lines pinned and run on the
@@ -43,11 +44,12 @@ const STATUS = {
 };
 /** A lab's reference-solution status, in the labs page's words (LabKit's solutionTabStatus), from this machine's runs. */
 function useLabStatus(lab: string) {
+  const { locale } = useI18n();
   const { reports } = useReports();
   return {
-    cu: solutionTabStatus(reports, lab, 'kernel.cu'),
-    metal: solutionTabStatus(reports, lab, 'kernel.metal'),
-    mm: solutionTabStatus(reports, lab, 'launch.mm'),
+    cu: solutionTabStatus(reports, lab, 'kernel.cu', locale),
+    metal: solutionTabStatus(reports, lab, 'kernel.metal', locale),
+    mm: solutionTabStatus(reports, lab, 'launch.mm', locale),
   };
 }
 const TIERS: Record<string, Tier> = {

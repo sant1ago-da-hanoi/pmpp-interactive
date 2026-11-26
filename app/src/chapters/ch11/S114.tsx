@@ -24,6 +24,7 @@ import {
   type PortTarget,
   type WarpScanTrace,
 } from '../../sim/warpscan';
+import { useI18n } from '../../lib/i18n';
 
 // What has been checked for the snippet shown here, in the course's fixed vocabulary (the lab's files read theirs from the reports).
 const STATUS = {
@@ -561,12 +562,13 @@ function PortIt() {
 
 // ---------------------------------------------------------------- code
 function BlockScanListing() {
+  const { locale } = useI18n();
   const printed = useLabFile(PRINTED_FILE);
   const cu = useLabFile(LAB + '/kernel.cu');
   const metal = useLabFile(LAB + '/kernel.metal');
   // The labs page's words (LabKit's solutionTabStatus), from this machine's runs.
   const { reports } = useReports();
-  const labStatus = { cu: solutionTabStatus(reports, 'ch11/lab1_blockscan', 'kernel.cu'), metal: solutionTabStatus(reports, 'ch11/lab1_blockscan', 'kernel.metal') };
+  const labStatus = { cu: solutionTabStatus(reports, 'ch11/lab1_blockscan', 'kernel.cu', locale), metal: solutionTabStatus(reports, 'ch11/lab1_blockscan', 'kernel.metal', locale) };
   if (missing(printed)) return null;
   const pick = (src: string | null, names: string[], extra?: RegExp) => {
     if (missing(src)) return null;

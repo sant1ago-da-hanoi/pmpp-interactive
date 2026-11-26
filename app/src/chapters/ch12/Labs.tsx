@@ -1,4 +1,5 @@
 import type { Question } from '../../components/Ask';
+import { useI18n, type Locale } from '../../lib/i18n';
 import { Predict } from '../../components/Ask';
 import { Beyond, Source, Today, type Tier } from '../../components/notes';
 import {
@@ -109,6 +110,7 @@ function MissingLine({ lab, gpu }: { lab: string; gpu?: string }) {
 
 /** The fraction at which the plain atomic is furthest behind the privatised kernel, against the reader's pick. */
 function WorstReveal({ committed }: { committed: number }) {
+  const { locale } = useI18n();
   const { reports } = useLabs();
   const found = preferredBench(reports, l1).flatMap((s) => {
     const rows = behind(s);
@@ -122,7 +124,7 @@ function WorstReveal({ committed }: { committed: number }) {
           const mine = rows.reduce((a, b) => (Math.abs(b.f - committed) < Math.abs(a.f - committed) ? b : a));
           return (
             <p key={s.backend} data-measured={worst.f} data-backend={s.backend}>
-              Measured on {s.device} ({s.backend}) with {whose(s)}, in the run of {s.date}: the plain atomic was furthest
+              Measured on {s.device} ({s.backend}) with {whose(s, locale)}, in the run of {s.date}: the plain atomic was furthest
               behind at fraction <b>{worst.f}</b>, where it took {fmt(worst.ratio)} times as long as the privatised kernel (
               {ms(worst.a)} against {ms(worst.p)}).{' '}
               {mine.f === worst.f
@@ -160,6 +162,7 @@ const stagedRatio = (reports: Reports) =>
 
 /** Lab 12.3: part B's coarsening factors at half kept, fastest first. */
 function CoarseReveal({ committed }: { committed: number }) {
+  const { locale } = useI18n();
   const { reports } = useLabs();
   const found = preferredBench(reports, l3).flatMap((s) => {
     const rows = s.rows
@@ -177,7 +180,7 @@ function CoarseReveal({ committed }: { committed: number }) {
           const mine = rows.find((r) => r.c === committed);
           return (
             <p key={s.backend} data-measured={best.c} data-backend={s.backend}>
-              Measured on {s.device} ({s.backend}) with {whose(s)}, in the run of {s.date}, at half kept: the fastest
+              Measured on {s.device} ({s.backend}) with {whose(s, locale)}, in the run of {s.date}, at half kept: the fastest
               factor was <b>coarse {best.c}</b>, at {ms(best.t)}, and the slowest coarse {worst.c}, at {ms(worst.t)}.{' '}
               {best.c === committed
                 ? 'That is the factor you picked.'
@@ -232,7 +235,7 @@ const fractionRatio = (reports: Reports) =>
   });
 
 /** Lab 12.5: lab 12.3 part B over the single pass, coarse 4, half kept, out of place, same backend. */
-const singlePassRatio = (reports: Reports) => {
+const singlePassRatio = (reports: Reports, locale: Locale) => {
   const partB = preferredBench(reports, l3);
   return measure(reports, l5, (s) => {
     const b = partB.find((x) => x.backend === s.backend);
@@ -241,11 +244,11 @@ const singlePassRatio = (reports: Reports) => {
     const t1 = secs(one);
     if (!b || !tB || !t1) return null;
     return {
-      whose: `lab 12.5 from ${whose(s)}, lab 12.3 from ${whose(b)}`,
+      whose: `lab 12.5 from ${whose(s, locale)}, lab 12.3 from ${whose(b, locale)}`,
       value: tB / t1,
       detail: `${ms(tB)} for lab 12.3 part B, ${ms(t1)} for the single pass, coarse 4, half kept, out of place`,
     };
-  });
+  }, locale);
 };
 
 // ---------------------------------------------------------------- the race flavour, which the status tables do not show

@@ -9,6 +9,7 @@ import {
   LAYOUTS, LAYOUT_IDS, SEGMENT_MODELS, iterationPlan, iterationSpan, loadStep, loadsPerLane, problem, rowSteps,
   segmentBytesOf, type LaneLoad, type LayoutId, type LoadOrder, type Mapping, type SegmentModelId, type Step,
 } from '../../sim/qlayout';
+import { type Locale } from '../../lib/i18n';
 
 // Section X2.4 (ours): lab 22.1's gather GEMV with quantised rows. A stepper over one warp's
 // loads (qlayout.ts, which counts segments with coalesce.ts), a Predict on lab X2.1's mapping
@@ -431,8 +432,8 @@ function TailExplorer() {
 
 // ---------------------------------------------------------------- the code
 /** The same words as the labs page's status table (LabKit's solutionTabStatus). */
-function solutionStatus(reports: Reports, lab: string): { cu: string; metal: string } {
-  return { cu: solutionTabStatus(reports, lab, 'kernel.cu'), metal: solutionTabStatus(reports, lab, 'kernel.metal') };
+function solutionStatus(reports: Reports, lab: string, locale: Locale = 'en'): { cu: string; metal: string } {
+  return { cu: solutionTabStatus(reports, lab, 'kernel.cu', locale), metal: solutionTabStatus(reports, lab, 'kernel.metal', locale) };
 }
 
 function LabX22Code() {

@@ -22,6 +22,7 @@ import {
 } from '../../components/LabKit';
 import { fmt, labStatus, num, type BenchRow, type Reports, type RunResult } from '../../lib/reports';
 import { href } from '../../lib/router';
+import { useI18n } from '../../lib/i18n';
 
 // The page is built from components/LabKit.tsx; what is here is chapter 16's own content.
 // No question on this page: the lab is the exercise. The three predictions are stored, not
@@ -94,6 +95,7 @@ const MISSING = (
 
 /** The fourth question of the README: which way padding moves the square kernel, measured per backend. */
 function SquarePadding() {
+  const { locale } = useI18n();
   const { reports, loading } = useLabs();
   if (loading) return null;
   const lines = preferredBench(reports, l1).flatMap((s) => {
@@ -107,7 +109,7 @@ function SquarePadding() {
     <>
       {lines.map(({ s, ratio, p0, p1 }) => (
         <p key={s.backend} data-square-pad={s.backend} data-ratio={fmt(ratio)}>
-          The square kernel on {s.device} ({s.backend}), {whose(s)}, at W = 32: {ms(p1)} with one gap per row against{' '}
+          The square kernel on {s.device} ({s.backend}), {whose(s, locale)}, at W = 32: {ms(p1)} with one gap per row against{' '}
           {ms(p0)} without, a ratio of <b>{fmt(ratio)}</b>. Above 1, padding slowed it.
         </p>
       ))}

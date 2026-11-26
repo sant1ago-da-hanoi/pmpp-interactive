@@ -29,6 +29,7 @@ import {
   type YX,
 } from '../../sim/naivemm';
 import { SixteenThreadsScene } from './SixteenThreadsScene';
+import { useI18n } from '../../lib/i18n';
 
 // The kernel of book Fig. 3.11 (p. 61), line for line, and the launch the book does
 // not print. Both are labs/ch03/snippets/matmul_kernel.cu, which the CUDA front-end
@@ -965,13 +966,14 @@ function RankPrediction() {
 
 // ---------------------------------------------------------------- lab 3.3's reference kernel, on request
 function Lab3Listing() {
+  const { locale } = useI18n();
   const cu = useLabFile(LAB3 + '/solution/kernel.cu');
   const metal = useLabFile(LAB3 + '/solution/kernel.metal');
   const mm = useLabFile(LAB3 + '/solution/launch.mm');
   const { reports } = useReports();
   // The labs page's words for the same runs.
-  const cuda = solutionTabStatus(reports, LAB3, 'kernel.cu');
-  const onMetal = solutionTabStatus(reports, LAB3, 'kernel.metal');
+  const cuda = solutionTabStatus(reports, LAB3, 'kernel.cu', locale);
+  const onMetal = solutionTabStatus(reports, LAB3, 'kernel.metal', locale);
   if (!cu || !metal || !mm) return null;
   return (
     <Code

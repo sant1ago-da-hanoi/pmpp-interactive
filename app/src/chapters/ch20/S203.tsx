@@ -22,6 +22,7 @@ import {
   type Step,
 } from '../../sim/masksoftmax';
 import { functionSource } from '../../sim/toolchain';
+import { useI18n } from '../../lib/i18n';
 
 export const questionsS203: Record<string, Question> = {
   'ch20/20.3/q-cols': {
@@ -669,16 +670,17 @@ function Traffic() {
 const [LAB1] = defineLabs('ch20', [{ num: '20.1', dir: 'lab1_causal_softmax', name: 'causal softmax' }]);
 
 function LabListing() {
+  const { locale } = useI18n();
   const { reports } = useReports();
   const cu = useLabFile('ch20/lab1_causal_softmax/solution/kernel.cu');
   const metal = useLabFile('ch20/lab1_causal_softmax/solution/kernel.metal');
   const mm = useLabFile('ch20/lab1_causal_softmax/solution/launch.mm');
-  const m = solutionTabStatus(reports, LAB1, 'kernel.metal');
+  const m = solutionTabStatus(reports, LAB1, 'kernel.metal', locale);
   if (!cu || !metal || !mm) return <p className="muted">Loading lab 20.1&rsquo;s reference solution.</p>;
   return (
     <Code
       tabs={[
-        { label: 'CUDA', code: cu, tiers: LAB_TIERS, status: solutionTabStatus(reports, LAB1, 'kernel.cu') },
+        { label: 'CUDA', code: cu, tiers: LAB_TIERS, status: solutionTabStatus(reports, LAB1, 'kernel.cu', locale) },
         { label: 'Metal kernel', code: metal, tiers: LAB_TIERS, status: m },
         { label: 'Metal host', code: mm, tiers: {}, status: m },
       ]}

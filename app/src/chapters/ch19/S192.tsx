@@ -24,6 +24,7 @@ import {
   type ThreadPos,
 } from '../../sim/convgrid';
 import { DirectReadsScene } from './DirectReadsScene';
+import { useI18n } from '../../lib/i18n';
 
 // Section 19.2: the direct kernel. Which loops parallelise, the 3D grid of Figs. 19.5 and
 // 19.6 and the index recovery of Fig. 19.7 (with the book's integer division, a bounds check
@@ -805,10 +806,11 @@ function WarpReadsBench() {
 // ---------------------------------------------------------------- the corrected kernel
 
 function useLabStatusText() {
+  const { locale } = useI18n();
   const { reports, loading } = useReports();
   if (loading) return { cuda: 'reading reports', metal: 'reading reports' };
   // The labs page's words (LabKit's solutionTabStatus), so a failed run reads as failed here too.
-  return { cuda: solutionTabStatus(reports, LAB, 'kernel.cu'), metal: solutionTabStatus(reports, LAB, 'kernel.metal') };
+  return { cuda: solutionTabStatus(reports, LAB, 'kernel.cu', locale), metal: solutionTabStatus(reports, LAB, 'kernel.metal', locale) };
 }
 
 function DirectKernel() {

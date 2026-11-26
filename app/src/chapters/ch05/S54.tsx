@@ -16,6 +16,7 @@ import {
   type Schedule,
   type Step,
 } from '../../sim/tiled';
+import { useI18n } from '../../lib/i18n';
 
 // The kernel as the stepper shows it: the body of labs/ch05/lab2_tiled/solution/kernel.cu,
 // which is compiled and tested. Line numbers are what the stepper highlights.
@@ -469,12 +470,13 @@ export const questionsS54: Record<string, Question> = {
 };
 
 export function S54() {
+  const { locale } = useI18n();
   const cu = useLabFile('ch05/lab2_tiled/solution/kernel.cu');
   const metal = useLabFile('ch05/lab2_tiled/solution/kernel.metal');
   const mm = useLabFile('ch05/lab2_tiled/solution/launch.mm');
   // The labs page's words (LabKit's solutionTabStatus), read from this machine's runs.
   const { reports } = useReports();
-  const st = (f: 'kernel.cu' | 'kernel.metal' | 'launch.mm') => solutionTabStatus(reports, 'ch05/lab2_tiled', f);
+  const st = (f: 'kernel.cu' | 'kernel.metal' | 'launch.mm') => solutionTabStatus(reports, 'ch05/lab2_tiled', f, locale);
   return (
     <>
       <p>

@@ -27,6 +27,7 @@ import {
   type Placement,
 } from '../../sim/halocache';
 import { HaloFromCacheScene } from './HaloFromCacheScene';
+import { useI18n } from '../../lib/i18n';
 
 // Section 7.6 (book pp. 178 to 179): tiled convolution that keeps only the tile interior in
 // shared memory and reads the halo through the cache. Models: sim/convcached.ts (Fig. 7.15
@@ -754,6 +755,7 @@ export const questionsS76: Record<string, Question> = {
 // ---------------------------------------------------------------- the section
 
 export function S76() {
+  const { locale } = useI18n();
   const { reports } = useReports();
   const cu = useLabFile(SOL + '/kernel.cu');
   const metal = useLabFile(SOL + '/kernel.metal');
@@ -761,7 +763,7 @@ export function S76() {
   // The reader's own lab 7.2 passing anywhere means part B is repaired: the listing is no longer a spoiler.
   const repaired = Object.keys(reports).some((b) => labStatus(reports[b], LAB72.id, 'work') === 'pass');
   // The labs page's words (LabKit's solutionTabStatus), so a failed run reads as failed here too.
-  const st = (f: 'kernel.cu' | 'kernel.metal') => solutionTabStatus(reports, LAB72, f);
+  const st = (f: 'kernel.cu' | 'kernel.metal') => solutionTabStatus(reports, LAB72, f, locale);
   const warpChoices = useMemo(() => {
     const base = [
       { label: '32 (NVIDIA)', value: 32 },

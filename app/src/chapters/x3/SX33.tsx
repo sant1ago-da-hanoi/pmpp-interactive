@@ -27,6 +27,7 @@ import { functionSource } from '../../sim/toolchain';
 import type { Excerpt as ExcerptData } from '../../sim/x3sources';
 import { Excerpt } from './Excerpt';
 import { TwoSoftmaxesScene } from './TwoSoftmaxesScene';
+import { useI18n } from '../../lib/i18n';
 
 const FACTS = 'notes/today/x3-facts.md';
 const LAB = 'ch10/lab3_softmax_argmax/solution/kernel.cu';
@@ -513,10 +514,11 @@ function SortKernels() {
 const guardLine = (fn: { text: string; firstLine: number }) =>
   fn.firstLine + fn.text.split('\n').findIndex((l) => l.includes('laneIdx() < warpsInBlock()'));
 export function SX33() {
+  const { locale } = useI18n();
   const cu = useLabFile(LAB);
   // The labs page's words (LabKit's solutionTabStatus), from this machine's runs.
   const { reports } = useReports();
-  const CU_STATUS = solutionTabStatus(reports, 'ch10/lab3_softmax_argmax', 'kernel.cu');
+  const CU_STATUS = solutionTabStatus(reports, 'ch10/lab3_softmax_argmax', 'kernel.cu', locale);
   const reduce = cu ? functionSource(cu, 'blockReduceSum') : null;
   const softmax = cu ? functionSource(cu, 'softmaxRowsKernel') : null;
   return (

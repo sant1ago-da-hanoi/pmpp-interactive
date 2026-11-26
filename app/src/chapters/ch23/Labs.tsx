@@ -23,6 +23,7 @@ import {
 } from '../../components/LabKit';
 import { fmt, num, type BenchRow, type Reports } from '../../lib/reports';
 import { href } from '../../lib/router';
+import { useI18n } from '../../lib/i18n';
 
 // The page is built from components/LabKit.tsx; what is here is chapter 23's own content.
 // No question on this page: the lab is the exercise. The three predictions are stored, not
@@ -220,6 +221,7 @@ function OverlapResults() {
 
 // ---------------------------------------------------------------- the fourth guess: issue order
 function OrderTable() {
+  const { locale } = useI18n();
   const { reports, loading } = useLabs();
   if (loading) return null;
   const sets = preferredBench(reports, l1).filter((s) => ORDER_STREAMS.some((k) => orderRatio(s, k)));
@@ -251,7 +253,7 @@ function OrderTable() {
                 ? [
                     <tr key={s.backend + k} data-backend={s.backend} data-streams={k}>
                       <td>
-                        {s.backend} <span className="muted">({s.device}, {whose(s)})</span>
+                        {s.backend} <span className="muted">({s.device}, {whose(s, locale)})</span>
                       </td>
                       <td className="num">{k}</td>
                       <td className="num">{fmt(o.depth * 1000)}</td>

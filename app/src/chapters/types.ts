@@ -14,8 +14,12 @@ export interface Section {
   /** Shown in the rail: the book's section number, or blank for our own pages. */
   num: string;
   title: string;
+  /** Vietnamese section title, when translated. */
+  titleVi?: string;
   /** One sentence: what you will be able to do after it. */
   lede: string;
+  /** Vietnamese lede, when translated. */
+  ledeVi?: string;
   /** Book pages this section draws on, or null when it is ours. */
   pages: string | null;
   /**
@@ -23,6 +27,8 @@ export interface Section {
    * page only pulls in (and only reloads for) the section being read.
    */
   load: () => Promise<SectionModule>;
+  /** Loads the Vietnamese translation of the section's code on demand, when available. */
+  loadVi?: () => Promise<SectionModule>;
 }
 
 export interface Chapter {

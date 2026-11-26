@@ -26,6 +26,7 @@ import {
 } from '../../sim/convolve';
 import { widthChoices } from '../../sim/warps';
 import { OneThreadScene } from './OneThreadScene';
+import { useI18n } from '../../lib/i18n';
 
 // Section 7.2: one thread per output. The index mapping, the printed kernel and its
 // corrections, a stepper through one thread's taps, which warps diverge at the edges,
@@ -319,10 +320,11 @@ function ErratumHunt({ onChecked }: { onChecked: () => void }) {
 }
 
 function useLabStatus() {
+  const { locale } = useI18n();
   const { reports, loading } = useReports();
   if (loading) return { cuda: 'reading reports', metal: 'reading reports' };
   // The labs page's words (LabKit's solutionTabStatus), so a failed run reads as failed here too.
-  return { cuda: solutionTabStatus(reports, LAB, 'kernel.cu'), metal: solutionTabStatus(reports, LAB, 'kernel.metal') };
+  return { cuda: solutionTabStatus(reports, LAB, 'kernel.cu', locale), metal: solutionTabStatus(reports, LAB, 'kernel.metal', locale) };
 }
 
 function CorrectedKernel() {

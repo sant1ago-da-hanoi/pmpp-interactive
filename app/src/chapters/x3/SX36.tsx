@@ -11,6 +11,7 @@ import {
   type Bin, type Impl, type Stage, type System,
 } from '../../sim/argmaxties';
 import { functionSource } from '../../sim/toolchain';
+import { useI18n } from '../../lib/i18n';
 
 const X3 = 'notes/today/x3-facts.md';
 const X1 = 'notes/today/x1-facts.md';
@@ -376,10 +377,11 @@ function WhereItRuns() {
 
 // ---------------------------------------------------------------- the M4 listing
 function M4Listing() {
+  const { locale } = useI18n();
   const cu = useLabFile(LAB + '/solution/kernel.cu');
   // The labs page's words (LabKit's solutionTabStatus), from this machine's runs.
   const { reports } = useReports();
-  const STATUS = { cu: solutionTabStatus(reports, LAB, 'kernel.cu'), metal: solutionTabStatus(reports, LAB, 'kernel.metal') };
+  const STATUS = { cu: solutionTabStatus(reports, LAB, 'kernel.cu', locale), metal: solutionTabStatus(reports, LAB, 'kernel.metal', locale) };
   const metal = useLabFile(LAB + '/solution/kernel.metal');
   const a = cu ? functionSource(cu, 'argmaxCombine') : null;
   const w = cu ? functionSource(cu, 'warpArgmax') : null;

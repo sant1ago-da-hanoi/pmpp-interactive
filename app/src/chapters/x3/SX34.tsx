@@ -22,6 +22,7 @@ import {
 import { functionSource } from '../../sim/toolchain';
 import { permalink, type Excerpt as ExcerptData } from '../../sim/x3sources';
 import { Excerpt } from './Excerpt';
+import { useI18n } from '../../lib/i18n';
 
 const FACTS = 'notes/today/x3-facts.md';
 const LAB = 'ch22/lab1_gemv/solution/kernel.cu';
@@ -381,10 +382,11 @@ function WhichKernel() {
 
 // ---------------------------------------------------------------- the page
 export function SX34() {
+  const { locale } = useI18n();
   const cu = useLabFile(LAB);
   // The labs page's words (LabKit's solutionTabStatus), from this machine's runs.
   const { reports } = useReports();
-  const CU_STATUS = solutionTabStatus(reports, 'ch22/lab1_gemv', 'kernel.cu');
+  const CU_STATUS = solutionTabStatus(reports, 'ch22/lab1_gemv', 'kernel.cu', locale);
   const dots = cu ? functionSource(cu, 'warpRowDots') : null;
   const sum = cu ? functionSource(cu, 'warpSum') : null;
   const gather = cu ? functionSource(cu, 'gemvGatherKernel') : null;

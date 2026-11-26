@@ -1,4 +1,5 @@
 import { solutionTabStatus } from '../../components/LabKit';
+import { useI18n } from '../../lib/i18n';
 import { useReports } from '../../lib/reports';
 
 /**
@@ -22,6 +23,7 @@ export const STATUS = {
 
 /** Status of a lab's .cu file (CUDA, HIP and the emulator) and its Metal files, from this machine's runs. */
 export function useLabStatus(lab: string): { cu: string; metal: string } {
+  const { locale } = useI18n();
   const { reports } = useReports();
-  return { cu: solutionTabStatus(reports, lab, 'kernel.cu'), metal: solutionTabStatus(reports, lab, 'kernel.metal') };
+  return { cu: solutionTabStatus(reports, lab, 'kernel.cu', locale), metal: solutionTabStatus(reports, lab, 'kernel.metal', locale) };
 }

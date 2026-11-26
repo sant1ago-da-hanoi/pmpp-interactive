@@ -43,6 +43,7 @@ import {
   type ZStep,
 } from '../../sim/zmarch';
 import { ZMarchScene } from './ZMarchScene';
+import { useI18n, type Locale } from '../../lib/i18n';
 
 // ---------------------------------------------------------------- code shown by the stepper
 // The two kernels as the stepper shows them: labs/ch08/snippets/zmarch_planes.cu and
@@ -1014,20 +1015,21 @@ function partOf(file: string | null, marker: RegExp): string | null {
  * Status of a listing lab 8.1 runs, in the labs page's words (LabKit's solutionTabStatus):
  * the shared planes kernel is run by the lab's tests, the second listing is the lab's solution.
  */
-function labStatusText(reports: Reports, backend: 'cuda' | 'metal', shared = false): string {
-  const st = solutionTabStatus(reports, 'ch08/lab1_stencil3d', backend === 'cuda' ? 'kernel.cu' : 'kernel.metal');
+function labStatusText(reports: Reports, backend: 'cuda' | 'metal', shared = false, locale: Locale = 'en'): string {
+  const st = solutionTabStatus(reports, 'ch08/lab1_stencil3d', backend === 'cuda' ? 'kernel.cu' : 'kernel.metal', locale);
   return shared ? `tested with lab 8.1: ${st}` : st;
 }
 
 function PlanesListing() {
+  const { locale } = useI18n();
   const { reports } = useReports();
   const cu = useLabFile('ch08/shared/planes.cu');
   const metal = useLabFile('ch08/shared/planes.metal');
   return (
     <Code
       tabs={[
-        { label: 'CUDA', code: cu ?? '// loading labs/ch08/shared/planes.cu', tiers: LAB_TIERS, status: labStatusText(reports, 'cuda', true) },
-        { label: 'Metal', code: metal ?? '// loading labs/ch08/shared/planes.metal', tiers: LAB_TIERS, status: labStatusText(reports, 'metal', true) },
+        { label: 'CUDA', code: cu ?? '// loading labs/ch08/shared/planes.cu', tiers: LAB_TIERS, status: labStatusText(reports, 'cuda', true, locale) },
+        { label: 'Metal', code: metal ?? '// loading labs/ch08/shared/planes.metal', tiers: LAB_TIERS, status: labStatusText(reports, 'metal', true, locale) },
       ]}
       caption={
         <>
@@ -1041,6 +1043,7 @@ function PlanesListing() {
 }
 
 function RegTiledListing() {
+  const { locale } = useI18n();
   const { reports } = useReports();
   const cu = partOf(useLabFile('ch08/lab1_stencil3d/solution/kernel.cu'), /Part 2/);
   const metal = partOf(useLabFile('ch08/lab1_stencil3d/solution/kernel.metal'), /^\/\/ Fig\. 8\.12/);
@@ -1048,8 +1051,8 @@ function RegTiledListing() {
     <div id="s85-fig812" className="wide" style={{ scrollMarginTop: '1rem' }}>
       <Code
         tabs={[
-          { label: 'CUDA', code: cu ?? '// loading labs/ch08/lab1_stencil3d/solution/kernel.cu', tiers: LAB_TIERS, status: labStatusText(reports, 'cuda') },
-          { label: 'Metal', code: metal ?? '// loading labs/ch08/lab1_stencil3d/solution/kernel.metal', tiers: LAB_TIERS, status: labStatusText(reports, 'metal') },
+          { label: 'CUDA', code: cu ?? '// loading labs/ch08/lab1_stencil3d/solution/kernel.cu', tiers: LAB_TIERS, status: labStatusText(reports, 'cuda', false, locale) },
+          { label: 'Metal', code: metal ?? '// loading labs/ch08/lab1_stencil3d/solution/kernel.metal', tiers: LAB_TIERS, status: labStatusText(reports, 'metal', false, locale) },
         ]}
         caption={
           <>

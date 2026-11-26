@@ -25,6 +25,7 @@ import { fmt, labStatus, num, type BenchRow, type Reports, type RunResult } from
 import { href } from '../../lib/router';
 
 import { NoteGroup } from './NoteGroup';
+import { useI18n } from '../../lib/i18n';
 // The page is built from components/LabKit.tsx; what is here is chapter 10's own content.
 // No question on this page: the labs are the exercise. (Predictions are stored, not graded.)
 export const questionsLabs: Record<string, Question> = {};
@@ -119,6 +120,7 @@ function MissingLine() {
 
 /** The coarsening sweep: the fastest factor, and how the reader's pick did against it. */
 function CoarseReveal({ committed }: { committed: number }) {
+  const { locale } = useI18n();
   const { reports } = useLabs();
   const found = preferredBench(reports, l1).flatMap((s) => {
     const rows = s.rows
@@ -137,7 +139,7 @@ function CoarseReveal({ committed }: { committed: number }) {
           const mine = rows.reduce((a, b) => (far(b.c) < far(a.c) ? b : a));
           return (
             <p key={s.backend} data-measured={best.c} data-backend={s.backend}>
-              Measured on {s.device} ({s.backend}) with {whose(s)}, in the run of {s.date}
+              Measured on {s.device} ({s.backend}) with {whose(s, locale)}, in the run of {s.date}
               {best.n ? <>, {count(best.n)} floats in blocks of {best.block}</> : null}: the fastest factor was{' '}
               <b>C = {best.c}</b>, at {fmt(best.g)} GB/s, and the slowest C = {worst.c}, at {fmt(worst.g)} GB/s.{' '}
               {mine.c === best.c
@@ -160,6 +162,7 @@ function CoarseReveal({ committed }: { committed: number }) {
 
 /** The determinism count: distinct bit patterns among 20 runs of the atomic kernel. */
 function DistinctReveal({ committed }: { committed: number }) {
+  const { locale } = useI18n();
   const { reports } = useLabs();
   const found = preferredBench(reports, l1).flatMap((s) => {
     const r = s.rows.find((x) => x.name === 'determinism');
@@ -171,7 +174,7 @@ function DistinctReveal({ committed }: { committed: number }) {
       {found.length ? (
         found.map(({ s, d, runs, n }) => (
           <p key={s.backend} data-measured={d} data-backend={s.backend}>
-            Measured on {s.device} ({s.backend}) with {whose(s)}, in the run of {s.date}: <b>{d}</b> distinct result
+            Measured on {s.device} ({s.backend}) with {whose(s, locale)}, in the run of {s.date}: <b>{d}</b> distinct result
             {d === 1 ? '' : 's'}
             {runs ? <> in {runs} runs</> : null}
             {n ? <> on the same {count(n)} floats</> : null}.{' '}

@@ -7,6 +7,7 @@ import { useReports } from '../../lib/reports';
 import { href } from '../../lib/router';
 import { OPENING_PAIR, TEMP_ROWS, argmax, entropyBits, reciprocalMismatch, softmax, temperature } from '../../sim/chain';
 import { functionSource } from '../../sim/toolchain';
+import { useI18n } from '../../lib/i18n';
 
 const FACTS = 'notes/today/x1-facts.md';
 const LAB = 'ch10/lab3_softmax_argmax';
@@ -296,8 +297,9 @@ function TemperatureExplorer() {
 
 // ---------------------------------------------------------------- the listing
 function SoftmaxListing() {
+  const { locale } = useI18n();
   const { reports } = useReports();
-  const STATUS = { cu: solutionTabStatus(reports, LAB, 'kernel.cu'), metal: solutionTabStatus(reports, LAB, 'kernel.metal') };
+  const STATUS = { cu: solutionTabStatus(reports, LAB, 'kernel.cu', locale), metal: solutionTabStatus(reports, LAB, 'kernel.metal', locale) };
   const cu = useLabFile(LAB + '/solution/kernel.cu');
   const metal = useLabFile(LAB + '/solution/kernel.metal');
   const k = cu ? functionSource(cu, 'softmaxRowsKernel') : null;

@@ -33,6 +33,7 @@ import {
   type Range,
 } from '../../sim/launch';
 import { OneLaunchScene } from './OneLaunchScene';
+import { useI18n } from '../../lib/i18n';
 
 // Section 2.6, "Calling a kernel". Every number an interactive, a prediction or a
 // question shows comes from src/sim/launch.ts, which is unit-tested against the
@@ -1048,12 +1049,13 @@ const METAL_STEPS: { cuda: ReactNode; metal: ReactNode; needles: string[]; note?
 ];
 
 export function S26() {
+  const { locale } = useI18n();
   const cu = useLabFile(LAB1 + '/solution/kernel.cu');
   const mm = useLabFile(LAB1 + '/solution/launch.mm');
   const { reports } = useReports();
   // The same words as the labs page, from this machine's runs.
-  const cuStatus = solutionTabStatus(reports, LAB1, 'kernel.cu');
-  const mmStatus = solutionTabStatus(reports, LAB1, 'launch.mm');
+  const cuStatus = solutionTabStatus(reports, LAB1, 'kernel.cu', locale);
+  const mmStatus = solutionTabStatus(reports, LAB1, 'launch.mm', locale);
 
   const host = cu ? withoutHeader(cu) : null;
   const launchLine = host ? linesWith(host.lines, 'vecAddKernel<<<')[0] : undefined;

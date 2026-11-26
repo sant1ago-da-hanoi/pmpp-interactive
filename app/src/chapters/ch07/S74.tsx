@@ -11,6 +11,7 @@ import {
   type Pattern,
 } from '../../sim/constcache';
 import { ConstantBroadcastScene, WarpTable } from './ConstantBroadcastScene';
+import { useI18n } from '../../lib/i18n';
 
 // Section 7.4: constant memory on CUDA, HIP and Metal, the constant cache's one-address
 // rule, and where small read-only tables go in a real inference engine. The explorer
@@ -47,10 +48,11 @@ const MSL_CONST: Record<string, Tier> = { ...REG, F: 'const', N: 'global', P: 'g
 const MSL_BYVALUE: Record<string, Tier> = { ...REG, f: 'const', N: 'global', P: 'global' };
 
 function useStatuses() {
+  const { locale } = useI18n();
   const { reports, loading } = useReports();
   if (loading) return { cuda: 'reading reports', metal: 'reading reports' };
   // The labs page's words (LabKit's solutionTabStatus), so a failed run reads as failed here too.
-  return { cuda: solutionTabStatus(reports, LAB71, 'kernel.cu'), metal: solutionTabStatus(reports, LAB71, 'kernel.metal') };
+  return { cuda: solutionTabStatus(reports, LAB71, 'kernel.cu', locale), metal: solutionTabStatus(reports, LAB71, 'kernel.metal', locale) };
 }
 
 function LabPart({ name, caption, cuTiers, mslTiers, cuMark, mslMark, mmMark }: {

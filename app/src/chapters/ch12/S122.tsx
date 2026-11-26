@@ -16,6 +16,7 @@ import {
   type Pattern,
 } from '../../sim/filter';
 import { functionSource } from '../../sim/toolchain';
+import { useI18n } from '../../lib/i18n';
 
 // Section 12.2, A simple parallel unstable filter (pp. 290-291). The listing is lab 12.1's
 // reference solution; the explorer runs on src/sim/filter.ts. Vendor facts:
@@ -24,11 +25,12 @@ import { functionSource } from '../../sim/toolchain';
 const LAB = 'ch12/lab1_unstable/solution/';
 /** A lab's reference-solution status, in the labs page's words (LabKit's solutionTabStatus), from this machine's runs. */
 function useLabStatus(lab: string) {
+  const { locale } = useI18n();
   const { reports } = useReports();
   return {
-    cu: solutionTabStatus(reports, lab, 'kernel.cu'),
-    metal: solutionTabStatus(reports, lab, 'kernel.metal'),
-    mm: solutionTabStatus(reports, lab, 'launch.mm'),
+    cu: solutionTabStatus(reports, lab, 'kernel.cu', locale),
+    metal: solutionTabStatus(reports, lab, 'kernel.metal', locale),
+    mm: solutionTabStatus(reports, lab, 'launch.mm', locale),
   };
 }
 const TIERS: Record<string, Tier> = {

@@ -48,6 +48,7 @@ import {
 } from '../../sim/unfold';
 import { ImplicitTilesScene } from './ImplicitTilesScene';
 import { UnfoldScene } from './UnfoldScene';
+import { useI18n, type Locale } from '../../lib/i18n';
 
 // ---------------------------------------------------------------- the lab files this section shows
 
@@ -83,8 +84,8 @@ export function region(src: string | null, name: string): { code: string; firstL
 }
 
 /** Status of lab 19.1's files, in the labs page's words (LabKit's solutionTabStatus). */
-const cuStatus = (reports: Reports): string => solutionTabStatus(reports, LAB1, 'kernel.cu');
-const metalStatus = (reports: Reports): string => solutionTabStatus(reports, LAB1, 'kernel.metal');
+const cuStatus = (reports: Reports, locale: Locale = 'en'): string => solutionTabStatus(reports, LAB1, 'kernel.cu', locale);
+const metalStatus = (reports: Reports, locale: Locale = 'en'): string => solutionTabStatus(reports, LAB1, 'kernel.metal', locale);
 
 // ---------------------------------------------------------------- small helpers
 
@@ -981,6 +982,7 @@ function ShapesExplorer() {
 // ---------------------------------------------------------------- code from the lab
 
 function ProvidedKernel() {
+  const { locale } = useI18n();
   const { reports } = useReports();
   const cu = useLabFile(PROVIDED.cu);
   const metal = useLabFile(PROVIDED.metal);
@@ -988,8 +990,8 @@ function ProvidedKernel() {
   return (
     <Code
       tabs={[
-        { label: 'CUDA (also HIP, emulator)', code: cu, tiers: CONV_TIERS, status: 'tested with lab 19.1: ' + cuStatus(reports) },
-        { label: 'Metal', code: metal, tiers: CONV_TIERS, status: 'tested with lab 19.1: ' + metalStatus(reports) },
+        { label: 'CUDA (also HIP, emulator)', code: cu, tiers: CONV_TIERS, status: 'tested with lab 19.1: ' + cuStatus(reports, locale) },
+        { label: 'Metal', code: metal, tiers: CONV_TIERS, status: 'tested with lab 19.1: ' + metalStatus(reports, locale) },
       ]}
       caption={
         <>
@@ -1002,6 +1004,7 @@ function ProvidedKernel() {
 }
 
 function SolutionRegions() {
+  const { locale } = useI18n();
   const { reports } = useReports();
   const files = {
     'kernel.cu': useLabFile(LAB_DIR + 'solution/kernel.cu'),
@@ -1018,7 +1021,7 @@ function SolutionRegions() {
         label: `${name}, ${f}`,
         code: r.code,
         tiers: f === 'launch.mm' ? {} : CONV_TIERS,
-        status: f === 'kernel.cu' ? cuStatus(reports) : metalStatus(reports),
+        status: f === 'kernel.cu' ? cuStatus(reports, locale) : metalStatus(reports, locale),
       });
     }
   const loading = Object.values(files).some((x) => x === null);

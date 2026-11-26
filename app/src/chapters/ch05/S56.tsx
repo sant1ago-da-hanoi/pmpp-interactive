@@ -5,6 +5,7 @@ import { Code, MATMUL_TIERS, useLabFile } from '../../components/Code';
 import { solutionTabStatus } from '../../components/LabKit';
 import { fmt, realBackends, useReports, type Reports } from '../../lib/reports';
 import { href } from '../../lib/router';
+import { useI18n } from '../../lib/i18n';
 
 const KB = 1024;
 
@@ -676,12 +677,13 @@ function ErratumHunt({ onChecked }: { onChecked: () => void }) {
 const DYNAMIC_TIERS = { ...MATMUL_TIERS, tiles: 'shared', mCol: 'reg', nRow: 'reg', T: 'reg' } as const;
 
 function DynamicKernel() {
+  const { locale } = useI18n();
   const cu = useLabFile('ch05/lab5_dynamic/solution/kernel.cu');
   const metal = useLabFile('ch05/lab5_dynamic/solution/kernel.metal');
   const host = useLabFile('ch05/lab5_dynamic/solution/launch.mm');
   // The labs page's words (LabKit's solutionTabStatus), read from this machine's runs.
   const { reports } = useReports();
-  const st = (f: 'kernel.cu' | 'kernel.metal' | 'launch.mm') => solutionTabStatus(reports, 'ch05/lab5_dynamic', f);
+  const st = (f: 'kernel.cu' | 'kernel.metal' | 'launch.mm') => solutionTabStatus(reports, 'ch05/lab5_dynamic', f, locale);
   return (
     <Code
       tabs={[

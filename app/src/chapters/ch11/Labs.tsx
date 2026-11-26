@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useI18n, type Locale } from '../../lib/i18n';
 import type { Question } from '../../components/Ask';
 import { Predict } from '../../components/Ask';
 import { Aside, Beyond, NoteGroup, Source, Today, type Tier } from '../../components/notes';
@@ -147,6 +148,7 @@ function MissingLine({ lab, children }: { lab: string; children?: ReactNode }) {
 
 /** Fastest coarsening factor of the register-tiled kernel at block 256, and the reader's pick against it. */
 function FactorReveal({ committed }: { committed: number }) {
+  const { locale } = useI18n();
   const { reports } = useLabs();
   const found = preferredBench(reports, l2).flatMap((s) => {
     const rows = s.rows
@@ -165,7 +167,7 @@ function FactorReveal({ committed }: { committed: number }) {
           const mine = rows.reduce((a, b) => (far(b.c) < far(a.c) ? b : a));
           return (
             <p key={s.backend} data-measured={best.c} data-backend={s.backend}>
-              Measured on {s.device} ({s.backend}) with {whose(s)}, in the run of {s.date}, register-tiled kernel at blocks
+              Measured on {s.device} ({s.backend}) with {whose(s, locale)}, in the run of {s.date}, register-tiled kernel at blocks
               of 256: the fastest factor was <b>{best.c}</b>, at {ms(best.t)}
               {best.share != null ? ` (${pct(best.share)} of the copy kernel's rate)` : ''}, and the slowest {worst.c}, at{' '}
               {ms(worst.t)}.{' '}
@@ -300,7 +302,7 @@ interface SinglePass {
   value: number;
   detail: string;
 }
-function singleOverSsa(reports: Reports): SinglePass[] {
+function singleOverSsa(reports: Reports, locale: Locale): SinglePass[] {
   const four = preferredBench(reports, l4);
   return preferredBench(reports, l5).flatMap((s) => {
     const other = four.find((f) => f.backend === s.backend);
@@ -318,7 +320,7 @@ function singleOverSsa(reports: Reports): SinglePass[] {
         backend: s.backend,
         device: s.device,
         date: s.date,
-        whose: `${whose(s)} for lab 11.5, and ${whose(other)} for lab 11.4`,
+        whose: `${whose(s, locale)} for lab 11.5, and ${whose(other, locale)} for lab 11.4`,
         value: main.ssa / main.single,
         detail:
           `${ms(main.ssa)} for scan-scan-add and ${ms(main.single)} for the single pass, ${count(N26)} floats in blocks of ${main.block}` +
@@ -332,15 +334,16 @@ function singleOverSsa(reports: Reports): SinglePass[] {
 }
 
 function SinglePassReveal({ committed }: { committed: number }) {
+  const { locale } = useI18n();
   const { reports } = useLabs();
-  const found = singleOverSsa(reports);
+  const found = singleOverSsa(reports, locale);
   return (
     <>
       {found.length ? (
         found.map((m) => (
           <p key={m.backend} data-measured={fmt(m.value)} data-backend={m.backend}>
             Measured on {m.device} ({m.backend}) with {m.whose}, in the run of {m.date}: <b>{fmt(m.value)}</b> × lab 11.4's
-            scan-scan-add ({m.detail}). {compare(committed, m.value)}
+            scan-scan-add ({m.detail}). {compare(committed, m.value, locale)}
           </p>
         ))
       ) : (

@@ -6,6 +6,7 @@ import { solutionTabStatus } from '../../components/LabKit';
 import { useReports } from '../../lib/reports';
 import { href } from '../../lib/router';
 import { OP_TEXT, PRESETS, atomicOrder, enumerate, nextOp, run, type PresetId, type Run } from '../../sim/histrace';
+import { useI18n } from '../../lib/i18n';
 
 const LAB = 'ch09/lab1_racehunt';
 const KERNEL_TIERS: Record<string, Tier> = {
@@ -274,14 +275,15 @@ function Census() {
 
 // ---------------------------------------------------------------- the listing
 function BasicListing() {
+  const { locale } = useI18n();
   const { reports } = useReports();
   const cu = useLabFile(LAB + '/solution/kernel.cu');
   const metal = useLabFile(LAB + '/solution/kernel.metal');
   const k = region(cu, 'basic');
   const m = region(metal, 'basic');
   // The same words as the labs page's status table and reference-solution tabs.
-  const cuStatus = solutionTabStatus(reports, LAB, 'kernel.cu');
-  const mStatus = solutionTabStatus(reports, LAB, 'kernel.metal');
+  const cuStatus = solutionTabStatus(reports, LAB, 'kernel.cu', locale);
+  const mStatus = solutionTabStatus(reports, LAB, 'kernel.metal', locale);
   if (!k)
     return (
       <p className="muted" data-part="listing-missing">
