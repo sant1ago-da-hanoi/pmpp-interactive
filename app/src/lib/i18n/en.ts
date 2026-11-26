@@ -1,7 +1,6 @@
 export const en = {
   lang: {
     switchTo: 'Tiếng Việt',
-    ariaLabel: 'Switch language',
   },
   common: {
     loading: 'Loading…',

@@ -13,7 +13,9 @@ export function getMessages(locale: Locale): Messages {
 function readStoredLocale(): Locale {
   if (typeof window === 'undefined') return 'en';
   try {
-    return window.localStorage.getItem('lang') === 'vi' ? 'vi' : 'en';
+    const locale = window.localStorage.getItem('lang') === 'vi' ? 'vi' : 'en';
+    document.documentElement.lang = locale;
+    return locale;
   } catch {
     return 'en';
   }
@@ -22,14 +24,12 @@ function readStoredLocale(): Locale {
 interface I18nValue {
   locale: Locale;
   t: Messages;
-  setLocale: (locale: Locale) => void;
   toggleLocale: () => void;
 }
 
 const I18nContext = createContext<I18nValue>({
   locale: 'en',
   t: en,
-  setLocale: () => undefined,
   toggleLocale: () => undefined,
 });
 
@@ -45,11 +45,10 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     }
   }, [locale]);
 
-  const setLocale = useCallback((next: Locale) => setLocaleState(next), []);
   const toggleLocale = useCallback(() => setLocaleState((prev) => (prev === 'en' ? 'vi' : 'en')), []);
 
   return (
-    <I18nContext.Provider value={{ locale, t: DICTS[locale], setLocale, toggleLocale }}>
+    <I18nContext.Provider value={{ locale, t: DICTS[locale], toggleLocale }}>
       {children}
     </I18nContext.Provider>
   );

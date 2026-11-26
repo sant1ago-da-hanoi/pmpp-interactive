@@ -251,6 +251,9 @@ export function solutionStatus(reports: Reports, b: Backend, l: Lab, locale: Loc
  * the file is unchanged since, and only until CUDA itself has passed). It says a run failed
  * whenever one did.
  */
+// Temporary `locale: Locale = 'en'` default on this and the other exported helpers
+// (solutionStatus, raceSolutionStatus, compare, whose) until the chapter prose
+// translation pass wires `locale` from `useI18n()` into the chapter call sites.
 export function solutionTabStatus(reports: Reports, l: Lab | string, file: LabSource, locale: Locale = 'en'): string {
   const msg = getMessages(locale);
   const m = msg.labKit;
@@ -324,7 +327,7 @@ export function SolutionStatusTable() {
               {BACKENDS.map((b) => {
                 const s = solutionStatus(reports, b, l, locale);
                 return (
-                  <td key={b} data-lab={l.num} data-backend={b} data-status={loading ? 'loading' : s.text}>
+                  <td key={b} data-lab={l.num} data-backend={b} data-status={loading ? 'loading' : s.tone === 'ok' ? 'pass' : s.tone}>
                     {loading ? (
                       <span className="muted">{t.common.readingReportsShort}</span>
                     ) : s.tone === 'none' ? (
@@ -340,7 +343,7 @@ export function SolutionStatusTable() {
                     const s = raceSolutionStatus(reports, l, raceLabs, locale);
                     // data-race-cell, not data-lab (the four backend columns keep their selector) nor data-race-lab (chapters' race lines use it).
                     return (
-                      <td key="race" data-race-cell={l.num} data-status={loading ? 'loading' : s.text}>
+                      <td key="race" data-race-cell={l.num} data-status={loading ? 'loading' : s.tone === 'ok' ? 'pass' : s.tone}>
                         {loading ? (
                           <span className="muted">{t.common.readingReportsShort}</span>
                         ) : s.tone === 'none' ? (

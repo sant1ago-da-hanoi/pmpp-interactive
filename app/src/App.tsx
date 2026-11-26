@@ -77,7 +77,7 @@ function Rail({ chapter, section }: { chapter?: Chapter | null; section?: string
         <button className="quiet" onClick={toggle}>
           {theme === 'dark' ? t.app.lightTheme : t.app.darkTheme}
         </button>
-        <button className="quiet" onClick={toggleLocale} aria-label={t.lang.ariaLabel}>
+        <button className="quiet" onClick={toggleLocale}>
           {t.lang.switchTo}
         </button>
       </div>

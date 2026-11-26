@@ -100,12 +100,6 @@ export function Bench({
 }
 
 export type Tier = 'reg' | 'shared' | 'global' | 'const';
-export const TIER_NAME: Record<Tier, string> = {
-  reg: 'register',
-  shared: 'shared memory',
-  global: 'global memory',
-  const: 'constant memory',
-};
 
 export function TierLegend({ tiers = ['reg', 'shared', 'global'] as Tier[] }: { tiers?: Tier[] }) {
   const { t } = useI18n();

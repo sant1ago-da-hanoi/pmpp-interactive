@@ -3,7 +3,6 @@ import type { Messages } from './en';
 export const vi: Messages = {
   lang: {
     switchTo: 'English',
-    ariaLabel: 'Đổi ngôn ngữ',
   },
   common: {
     loading: 'Đang tải…',
@@ -62,7 +61,7 @@ export const vi: Messages = {
     colStatus: 'Trạng thái',
     statusReady: 'Sẵn sàng',
     statusNotPlanned: 'Bỏ qua',
-    statusPlanned: 'Đang lên kế hoạch',
+    statusPlanned: 'Chưa xây dựng',
     tier: {
       Deep: 'Chuyên sâu',
       Standard: 'Tiêu chuẩn',
@@ -87,14 +86,14 @@ export const vi: Messages = {
     pagesPlural: 'tr.',
     pageSingular: 'tr.',
     today: 'Hiện tại',
-    checked: (date: string) => `Kiểm tra ngày ${date}.`,
+    checked: (date: string) => `Đã kiểm tra ngày ${date}.`,
     simplificationTitle: 'Mô hình này lược bỏ những gì',
     beyondDefaultTitle: 'Phần bổ sung ngoài sách',
     tiers: {
-      reg: 'register',
-      shared: 'shared memory',
-      global: 'global memory',
-      const: 'constant memory',
+      reg: 'thanh ghi',
+      shared: 'bộ nhớ shared',
+      global: 'bộ nhớ global',
+      const: 'bộ nhớ constant',
     },
   },
   ask: {
@@ -145,8 +144,8 @@ export const vi: Messages = {
     },
     tabs: {
       'kernel.cu': 'CUDA',
-      'kernel.metal': 'Metal kernel',
-      'launch.mm': 'Metal host',
+      'kernel.metal': 'Kernel Metal',
+      'launch.mm': 'Host Metal',
     },
     noMetalFiles: 'lab này không có file Metal',
     noKernelCu: 'lab này không có kernel.cu',
@@ -194,7 +193,7 @@ export const vi: Messages = {
       `Trên backend race, lời giải tham chiếu chưa được kiểm chứng: ${failed} (pass ${passed}/${total} test${buildFailed ? ', có target không build được' : ''}${aborted ? ', sau đó bị dừng đột ngột' : ''}, ${tsan}).`,
     raceWorkNone: 'Kernel của bạn chưa có lần chạy nào trên backend này, hoặc vẫn là bản starter ban đầu.',
     raceWorkPass: (total: number, hasTsan: boolean, tsan: string) =>
-      `Kernel của bạn đã pass toàn bộ ${total} test trên backend này (${hasTsan ? `${tsan}: hãy kiểm tra lại` : tsan}).`,
+      `Kernel của bạn đã pass toàn bộ ${total} test trên backend này (${hasTsan ? `${tsan}: hãy đọc báo cáo` : tsan}).`,
     raceWorkFail: (passed: number, total: number, aborted: boolean, tsan: string) =>
       `Kernel của bạn pass ${passed}/${total} test trên backend này${aborted ? ' trước khi bị dừng đột ngột' : ''}, với ${tsan} trong lần chạy.`,
     raceNotBuilt: (num: string) => `Lab ${num} chưa được cấu hình cho backend race (CMakeLists.txt không bật RACE).`,
